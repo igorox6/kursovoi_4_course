@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.LoginController"
+            prefWidth="800.0" prefHeight="450.0"
+            style="-fx-background-color: #f0f0f0;">
+
+    <children>
+        <!-- Центрированное серое окно -->
+        <AnchorPane layoutX="90.0" layoutY="75.0" prefWidth="620.0" prefHeight="300.0"
+                    style="-fx-background-color: #d3d3d3; -fx-background-radius: 8;">
+            <children>
+                <HBox prefWidth="620.0" prefHeight="300.0" spacing="0.0">
+                    <!-- Левая часть -->
+                    <children>
+                        <VBox prefWidth="320.0" alignment="TOP_LEFT" spacing="6.0"
+                              style="-fx-padding: 18 16 12 22;">
+                            <children>
+                                <!-- Вернул картинку как ты хотел -->
+                                <ImageView fx:id="logoImageView"
+                                           fitHeight="100.0"
+                                           fitWidth="200.0"
+                                           pickOnBounds="true"
+                                           preserveRatio="true" />
+
+                                <Label text="Добро пожаловать"
+                                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0a3b64;" />
+
+                                <!-- Разбил на две строки для переноса -->
+                                <Label text="в систему" style="-fx-font-size: 13px; -fx-text-fill: #2b2b2b;" />
+                                <Label text="распознавания лица." style="-fx-font-size: 13px; -fx-text-fill: #2b2b2b;" />
+
+                                <!-- Spacer чтобы опустить VISIONMARK вниз -->
+                                <Pane VBox.vgrow="ALWAYS" minHeight="10.0" />
+
+                                <Label text="VISIONMARK©"
+                                       style="-fx-font-size: 10px; -fx-opacity: 0.6;" />
+                            </children>
+                        </VBox>
+
+                        <!-- Разделительная линия -->
+                        <Pane prefWidth="1.0" style="-fx-background-color: #555; -fx-opacity: 0.2;" />
+
+                        <!-- Правая часть -->
+                        <VBox prefWidth="299.0" alignment="TOP_LEFT" spacing="8.0"
+                              style="-fx-padding: 18 22 18 22;">
+                            <children>
+                                <Label text="Авторизация"
+                                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #222222;" />
+
+                                <Label text="Логин" style="-fx-font-size: 12px; -fx-text-fill: #333333;" />
+                                <TextField fx:id="loginField" promptText="Введите логин..."
+                                           prefWidth="240.0" />
+
+                                <Label text="Пароль" style="-fx-font-size: 12px; -fx-text-fill: #333333;" />
+                                <PasswordField fx:id="passwordField" promptText="Введите пароль..."
+                                               prefWidth="240.0" />
+
+                                <Pane minHeight="6.0" />
+
+                                <!-- Кнопка растянута по длине полей -->
+                                <Button text="Войти" onAction="#handleLogin"
+                                        prefWidth="255.0"
+                                        style="-fx-background-color: #267bd6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 0 8 0;" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </children>
+        </AnchorPane>
+    </children>
+</AnchorPane>
