@@ -4,71 +4,74 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.*?>
-<?import javafx.scene.text.*?>
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.kursovoi_4_course_1.Controllers.BboxController"
             prefWidth="900.0" prefHeight="520.0"
             style="-fx-background-color: #efefef;">
 
-    <!-- HEADER (logo left, login + avatar + back button right) -->
     <children>
-        <HBox spacing="10.0" AnchorPane.leftAnchor="16.0" AnchorPane.rightAnchor="16.0" AnchorPane.topAnchor="12.0"
-              alignment="CENTER_LEFT" style="-fx-padding: 6 12 6 12;">
-            <!-- left logo -->
+        <!-- HEADER (logo left, login+avatar+back button right) -->
+        <VBox AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="6.0" spacing="6.0">
             <children>
-                <ImageView fx:id="logoImageView"
-                           fitWidth="180.0" fitHeight="80.0"
-                           preserveRatio="true" smooth="true" pickOnBounds="true" />
-
-                <Region HBox.hgrow="ALWAYS" />
-
-                <!-- right: Login label + avatar and back button -->
-                <VBox alignment="TOP_RIGHT" spacing="8.0">
+                <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 6 12 6 12;">
                     <children>
-                        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                        <!-- Уменьшенный логотип, выше -->
+                        <ImageView fx:id="logoImageView"
+                                   fitWidth="140.0" fitHeight="60.0"
+                                   preserveRatio="true" smooth="true" pickOnBounds="true" />
+
+                        <Region HBox.hgrow="ALWAYS" />
+
+                        <VBox alignment="CENTER_RIGHT" spacing="6.0">
                             <children>
-                                <Label text="Логин" style="-fx-font-size: 14px; -fx-text-fill: #222222; -fx-font-weight: 600;" />
-                                <!-- simple avatar circle with glyph; можно заменить на ImageView -->
-                                <StackPane prefWidth="36.0" prefHeight="36.0" style="-fx-background-color: #222; -fx-background-radius: 18;">
+                                <HBox alignment="CENTER_RIGHT" spacing="8.0">
                                     <children>
-                                        <Label text="\uD83D\uDC64" style="-fx-text-fill: white; -fx-font-size: 14px;" />
+                                        <Label text="Логин"
+                                               style="-fx-font-size: 14px; -fx-text-fill: #222222; -fx-font-weight: 600;" />
+                                        <StackPane prefWidth="36.0" prefHeight="36.0"
+                                                   style="-fx-background-color: #222; -fx-background-radius: 18;">
+                                            <children>
+                                                <Label text="&#x1F464;" style="-fx-text-fill: white; -fx-font-size: 14px;" />
+                                            </children>
+                                        </StackPane>
                                     </children>
-                                </StackPane>
+                                </HBox>
+
+                                <!-- Увеличенная кнопка назад -->
+                                <Button text="←"
+                                        mnemonicParsing="false"
+                                        onAction="#handleBack"
+                                        style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 20px;"
+                                        prefWidth="64.0" prefHeight="56.0" />
                             </children>
-                        </HBox>
-
-                        <!-- back button (синий квадрат с стрелкой) -->
-                        <Button text="←"
-                                mnemonicParsing="false"
-                                focusTraversable="false"
-                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;"
-                                prefWidth="40.0" prefHeight="36.0" />
+                        </VBox>
                     </children>
-                </VBox>
-            </children>
-        </HBox>
-
-        <!-- CENTER: камера в рамке -->
-        <VBox alignment="TOP_CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0">
-            <children>
-                <StackPane fx:id="cameraContainer"
-                           prefWidth="420.0" prefHeight="420.0"
-                           style="-fx-border-color: #111111; -fx-border-width: 3; -fx-border-radius: 8; -fx-background-color: white; -fx-background-radius: 6;"
-                           maxWidth="520" maxHeight="520">
-                    <!-- Примечание: внутрь cameraPane контроллер должен поместить поток с веб-камеры,
-                         например, ImageView или другой компонент. -->
-                    <children>
-                        <AnchorPane fx:id="cameraPane" prefWidth="400.0" prefHeight="400.0">
-                            <!-- placeholder: ничего не заполняю — контроллер сам подключит видеопоток -->
-                        </AnchorPane>
-                    </children>
-                </StackPane>
+                </HBox>
             </children>
         </VBox>
 
-        <!-- BOTTOM-LEFT: модели (anchored to bottom-left) -->
+        <!-- CENTER: StackPane с фиксированной рамкой камеры (центрируется внутри StackPane) -->
+        <!-- Обратите внимание: cameraContainer имеет фиксированные pref/min/max размеры, поэтому не растягивается -->
+        <StackPane AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="100.0" AnchorPane.bottomAnchor="100.0">
+            <children>
+                <StackPane fx:id="cameraContainer"
+                           prefWidth="360.0" prefHeight="360.0"
+                           minWidth="360.0" minHeight="360.0"
+                           maxWidth="360.0" maxHeight="360.0"
+                           style="-fx-border-color: #111111; -fx-border-width: 3; -fx-border-radius: 8; -fx-background-color: white; -fx-background-radius: 6;">
+                    <children>
+                        <!-- cameraPane имеет немного меньше размер, чтобы внутри была отступная рамка -->
+                        <AnchorPane fx:id="cameraPane"
+                                    prefWidth="340.0" prefHeight="340.0"
+                                    minWidth="340.0" minHeight="340.0"
+                                    maxWidth="340.0" maxHeight="340.0" />
+                    </children>
+                </StackPane>
+            </children>
+        </StackPane>
+
+        <!-- НИЗ: подписи моделей — явно выше нижнего края, видны всегда -->
         <VBox spacing="6.0" AnchorPane.leftAnchor="18.0" AnchorPane.bottomAnchor="18.0" alignment="BOTTOM_LEFT">
             <children>
                 <HBox spacing="8.0" alignment="CENTER_LEFT">

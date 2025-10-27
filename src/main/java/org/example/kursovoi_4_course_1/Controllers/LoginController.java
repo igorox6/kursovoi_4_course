@@ -11,6 +11,8 @@ import javafx.scene.image.ImageView;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
+import org.example.kursovoi_4_course_1.DBClasses.User;
+import org.example.kursovoi_4_course_1.App;
 import org.example.kursovoi_4_course_1.InnerClasses.BufferedImageTranscoder;
 import org.example.kursovoi_4_course_1.InnerClasses.Context;
 import org.example.kursovoi_4_course_1.Interfaces.InitializableController;
@@ -19,7 +21,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Objects;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class LoginController implements InitializableController, Initializable {
@@ -80,24 +82,28 @@ public class LoginController implements InitializableController, Initializable {
 
     @FXML
     protected void handleLogin() {
-        // Здесь добавьте логику авторизации, например, проверку логина/пароля
-        System.out.println("Логин: " + loginField.getText());
-        System.out.println("Пароль: " + passwordField.getText());
+        User user = new User();
+        context.setUser(user);
 
-        // Если успешно, переключитесь на следующую сцену, например:
-        // ((HelloApplication) app).switchScene("main-view.fxml");
+        user.setLogin(loginField.getText());
+        user.setPassword(passwordField.getText());
+
+        Map<String, Object> result = user.login();
+        if (result.get("status") == "success") {
+            System.out.println("успэх");
+            ((App) app).switchScene("Bbox.fxml");
+        }
+        else{
+            System.out.println("не успэх");
+        }
+
+
     }
 
     @Override
-    public void setMainApp(Application app, Context context) {
-        this.app = app;
-        this.context = context;
+    public void setMainApp() {
+        this.context = Context.getInstance();
+        this.app = context.getApp();
     }
 
-    @Override
-    public void setMainAppWithObject(Application app, Context context, Object data) {
-        this.app = app;
-        this.context = context;
-        // Если нужно обработать data, добавьте здесь
-    }
 }

@@ -9,6 +9,5 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public interface InitializableController extends Initializable {
-    void setMainApp(Application app, Context context);
-    void setMainAppWithObject(Application app, Context context, Object data);
+    void setMainApp();
 }

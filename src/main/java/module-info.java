@@ -4,6 +4,9 @@ module org.example.kursovoi_4_course_1 {
     requires static lombok;
     requires batik.transcoder;
     requires javafx.swing;
+    requires webcam.capture;
+    requires com.google.gson;
+    requires java.net.http;
 
 
     opens org.example.kursovoi_4_course_1 to javafx.fxml;
