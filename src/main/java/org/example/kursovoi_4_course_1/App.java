@@ -8,7 +8,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import lombok.Getter;
 import org.example.kursovoi_4_course_1.InnerClasses.Context;
-import org.example.kursovoi_4_course_1.Interfaces.InitializableController;
 
 import java.io.IOException;
 
@@ -25,12 +24,13 @@ public class App extends Application {
 
         context = Context.getInstance();
         context.setApp(this);
+
         this.primaryStage = stage;
         rootLayout = new StackPane();
         primaryStage.setTitle("Hello!");
         primaryStage.setScene(new Scene(rootLayout, 800, 450));
 
-        switchScene("Login-view.fxml");
+        switchScene("Bbox-view.fxml");
         primaryStage.show();
     }
 
@@ -42,14 +42,6 @@ public class App extends Application {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlFile));
             Parent newScene = loader.load();
-
-            Object controller = loader.getController();
-
-            if (controller instanceof InitializableController) {
-                ((InitializableController) controller).setMainApp();
-            } else {
-                System.out.println("Контроллер не реализует InitializableController: " + controller.getClass().getName());
-            }
 
             rootLayout.getChildren().setAll(newScene);
         } catch (IOException e) {

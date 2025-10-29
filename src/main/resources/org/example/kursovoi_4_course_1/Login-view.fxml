@@ -11,6 +11,18 @@
             style="-fx-background-color: #f0f0f0;">
 
     <children>
+
+        <!-- Кнопка Назад -->
+        <Button fx:id="backButton"
+                text="←"
+                visible="false"
+                onAction="#getBack"
+                prefWidth="36.0"
+                prefHeight="36.0"
+                AnchorPane.topAnchor="10.0"
+                AnchorPane.leftAnchor="10.0"
+                style="-fx-background-color: #267bd6; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-background-radius: 6;" />
+
         <!-- Центрированное серое окно -->
         <AnchorPane layoutX="90.0" layoutY="75.0" prefWidth="620.0" prefHeight="300.0"
                     style="-fx-background-color: #d3d3d3; -fx-background-radius: 8;">
@@ -21,7 +33,6 @@
                         <VBox prefWidth="320.0" alignment="TOP_LEFT" spacing="6.0"
                               style="-fx-padding: 18 16 12 22;">
                             <children>
-                                <!-- Вернул картинку как ты хотел -->
                                 <ImageView fx:id="logoImageView"
                                            fitHeight="100.0"
                                            fitWidth="200.0"
@@ -31,11 +42,9 @@
                                 <Label text="Добро пожаловать"
                                        style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0a3b64;" />
 
-                                <!-- Разбил на две строки для переноса -->
                                 <Label text="в систему" style="-fx-font-size: 13px; -fx-text-fill: #2b2b2b;" />
                                 <Label text="распознавания лица." style="-fx-font-size: 13px; -fx-text-fill: #2b2b2b;" />
 
-                                <!-- Spacer чтобы опустить VISIONMARK вниз -->
                                 <Pane VBox.vgrow="ALWAYS" minHeight="10.0" />
 
                                 <Label text="VISIONMARK©"
@@ -63,7 +72,6 @@
 
                                 <Pane minHeight="6.0" />
 
-                                <!-- Кнопка растянута по длине полей -->
                                 <Button text="Войти" onAction="#handleLogin"
                                         prefWidth="255.0"
                                         style="-fx-background-color: #267bd6; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-padding: 8 0 8 0;" />

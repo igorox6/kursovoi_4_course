@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.RegAdminTypeDisplayController"
+            prefWidth="1000.0" prefHeight="600.0"
+            style="-fx-background-color: #efefef;">
+
+    <children>
+
+        <!-- Верхняя панель -->
+        <HBox spacing="10.0" alignment="CENTER_LEFT"
+              AnchorPane.topAnchor="10.0"
+              AnchorPane.leftAnchor="10.0"
+              AnchorPane.rightAnchor="10.0">
+            <children>
+                <ImageView fx:id="logoImageView"
+                           fitWidth="140.0" fitHeight="60.0"
+                           preserveRatio="true" smooth="true" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                    <children>
+                        <Label fx:id="adminName"
+                                text="Логин администратора"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #222;" />
+                        <StackPane prefWidth="36.0" prefHeight="36.0"
+                                   style="-fx-background-color: #222; -fx-background-radius: 18;">
+                            <children>
+                                <Label text="&#x1F464;" style="-fx-text-fill: white; -fx-font-size: 16px;" />
+                            </children>
+                        </StackPane>
+                    </children>
+                </HBox>
+            </children>
+        </HBox>
+
+        <!-- Левая панель с типами отображения -->
+        <VBox spacing="10.0" alignment="TOP_LEFT"
+              prefWidth="250.0"
+              AnchorPane.leftAnchor="40.0"
+              AnchorPane.topAnchor="100.0">
+            <children>
+                <Label text="Типы отображения"
+                       style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #333;" />
+
+                <Button text="Рамка"
+                        fx:id="typeBox1"
+                        prefHeight="36.0"
+                        style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;"
+                        onAction="#handleFrameType1"/>
+
+                <Button text="Ключевые точки"
+                        fx:id="typeBox2"
+                        prefHeight="36.0"
+                        style="-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;"
+                        onAction="#handleFrameType2"/>
+
+                <Button text="Рамка с точками"
+                        fx:id="typeBox3"
+                        prefHeight="36.0"
+                        style="-fx-background-color: white; -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;"
+                        onAction="#handleFrameType3"/>
+            </children>
+        </VBox>
+
+        <!-- Центральная область (изображение) -->
+        <StackPane AnchorPane.topAnchor="100.0" AnchorPane.leftAnchor="350.0"
+                   prefWidth="300.0" prefHeight="300.0"
+                   style="-fx-background-color: #dcdcdc; -fx-background-radius: 10; -fx-border-color: #aaa; -fx-border-radius: 10;">
+            <children>
+                <ImageView fx:id="cameraImageView"
+                           fitWidth="200.0" fitHeight="200.0"
+                           preserveRatio="true"
+                           pickOnBounds="true"/>
+            </children>
+        </StackPane>
+
+        <!-- Подписи под изображением -->
+        <VBox spacing="6.0" AnchorPane.leftAnchor="40.0" AnchorPane.bottomAnchor="80.0">
+            <children>
+                <Label text="Сейчас используется: Рамка с точками"
+                       fx:id="currentTypeLabel"
+                       style="-fx-font-size: 13px; -fx-text-fill: #333;" />
+
+                <HBox spacing="8.0" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Модель:" style="-fx-font-size: 13px; -fx-font-weight: bold;" />
+                        <Label fx:id="model1Value" text="w2201" style="-fx-font-size: 13px;" />
+                    </children>
+                </HBox>
+
+                <HBox spacing="8.0" alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Модель:" style="-fx-font-size: 13px; -fx-font-weight: bold;" />
+                        <Label fx:id="model2Value" text="waw201" style="-fx-font-size: 13px;" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+
+        <!-- Кнопка "Применить" -->
+        <Button text="Применить"
+                fx:id="applyButton"
+                onAction="#handleApply"
+                AnchorPane.leftAnchor="40.0"
+                AnchorPane.bottomAnchor="30.0"
+                prefWidth="180.0" prefHeight="40.0"
+                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 14px;" />
+
+        <!-- Выдвижная панель справа -->
+        <AnchorPane fx:id="sideDrawer"
+                    AnchorPane.topAnchor="100.0"
+                    AnchorPane.rightAnchor="-120.0"
+                    prefWidth="180.0"
+                    style="-fx-background-color: transparent;">
+            <children>
+                <VBox alignment="TOP_LEFT" spacing="10.0" prefWidth="180.0">
+                    <children>
+
+                        <Button fx:id="toggleButton"
+                                text="←"
+                                onAction="#handleToggleDrawer"
+                                prefWidth="44.0" prefHeight="44.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 18px;" />
+
+                        <Button fx:id="adminButton"
+                                text="Тип отображения"
+                                visible="false" opacity="0"
+                                onAction="#handleAdminLogin"
+                                prefWidth="160.0" prefHeight="40.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
+
+                        <Button text="Тип модели"
+                                fx:id="modelButton"
+                                visible="false" opacity="0"
+                                prefWidth="160.0" prefHeight="40.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
+
+                        <Button text="Пользователи"
+                                fx:id="userButton"
+                                visible="false" opacity="0"
+                                prefWidth="160.0" prefHeight="40.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
+
+                        <Button fx:id="logoutButton"
+                                text="Выйти"
+                                visible="false" opacity="0"
+                                onAction="#handleLogout"
+                                prefWidth="160.0" prefHeight="40.0"
+                                style="-fx-background-color: #ff6a00; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;" />
+                    </children>
+                </VBox>
+            </children>
+        </AnchorPane>
+
+    </children>
+</AnchorPane>
