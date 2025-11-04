@@ -30,7 +30,7 @@ public class App extends Application {
         primaryStage.setTitle("Hello!");
         primaryStage.setScene(new Scene(rootLayout, 800, 450));
 
-        switchScene("Bbox-view.fxml");
+        switchScene("RegAdmin-Model-choose-view.fxml");
         primaryStage.show();
     }
 

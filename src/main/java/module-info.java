@@ -7,6 +7,7 @@ module org.example.kursovoi_4_course_1 {
     requires webcam.capture;
     requires com.google.gson;
     requires java.net.http;
+    requires com.microsoft.onnxruntime;
 
 
     opens org.example.kursovoi_4_course_1 to javafx.fxml;

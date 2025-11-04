@@ -54,7 +54,6 @@ public class LoginController extends Controller {
                 backButton.setVisible(true);
             }
         }
-
     }
 
 
