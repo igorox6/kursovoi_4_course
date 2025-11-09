@@ -18,11 +18,13 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.example.kursovoi_4_course_1.InnerClasses.Context;
 import org.example.kursovoi_4_course_1.InnerClasses.Controller;
+import org.example.kursovoi_4_course_1.InnerClasses.ModelManager;
 import org.example.kursovoi_4_course_1.InnerClasses.ModelManagerBbox;
 import org.example.kursovoi_4_course_1.InnerClasses.ModelManagerPoints;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -51,17 +53,11 @@ public class BboxController extends Controller {
     private static final double PANE_H = 340.0;
     private boolean drawerOpen = false;
 
-    // Model manager
+    // Model manager integration
+    private ModelManager modelManager;
     private ModelManagerBbox detector;
 
-    // === ONNX модели ===
-    private OrtEnvironment envBbox;
-    private OrtSession sessionBbox;
     private boolean bboxLoaded = false;
-
-    private OrtEnvironment envPoints;
-    private OrtSession sessionPoints;
-    private boolean pointsLoaded = false;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -78,22 +74,21 @@ public class BboxController extends Controller {
         cameraImageView.setFitHeight(PANE_H);
         cameraPane.getChildren().add(cameraImageView);
 
-        // === Загрузка моделей ===
+        // Загрузка моделей через ModelManager (поскольку модель в базе)
         try {
-            //detector = new ModelManagerBbox();
-            bboxLoaded = true;
-            System.out.println("✅ FACE_BBOX model loaded.");
-
-            // Comment out points loading for now
-            /*envPoints = OrtEnvironment.getEnvironment();
-            byte[] modelPointsBytes = ModelManagerPoints.fetchLatestModelBytes("FACE_KEYPOINTS");
-            sessionPoints = ModelManagerPoints.loadSessionFromBytes(envPoints, modelPointsBytes);
-            pointsLoaded = true;
-            System.out.println("✅ FACE_KEYPOINTS model loaded.");*/
-
+            modelManager = new ModelManager();
+            modelManager.refreshModels();  // Загружает из API
+            detector = modelManager.getBboxManager();
+            if (detector != null) {
+                bboxLoaded = true;
+                System.out.println("✅ FACE_BBOX model loaded from API.");
+            } else {
+                System.err.println("❌ No BBOX model available.");
+            }
         } catch (Exception e) {
             System.err.println("❌ Error loading models: " + e.getMessage());
             e.printStackTrace();
+            bboxLoaded = false;
         }
 
         startCamera();
@@ -132,26 +127,21 @@ public class BboxController extends Controller {
 
                 Graphics2D g = image.createGraphics();
 
-                if (bboxLoaded) {
-                    float[] bboxNorm = detector.predict(image);
-                    if (bboxNorm != null && bboxNorm.length == 4) {
-                        int w = image.getWidth();
-                        int h = image.getHeight();
-                        int x = (int) (bboxNorm[0] * w);
-                        int y = (int) (bboxNorm[1] * h);
-                        int bw = (int) (bboxNorm[2] * w);
-                        int bh = (int) (bboxNorm[3] * h);
+                if (bboxLoaded && detector != null) {
+                    float[] bbox = detector.predict(image);  // Уже в пикселях + сглаженный
+                    if (bbox != null && bbox.length == 4) {
+                        int x = (int) bbox[0];
+                        int y = (int) bbox[1];
+                        int w = (int) bbox[2];
+                        int h = (int) bbox[3];
 
-                        // Корректируем границы
-                        x = Math.max(0, x);
-                        y = Math.max(0, y);
-                        bw = Math.min(bw, w - x);
-                        bh = Math.min(bh, h - y);
-
-                        // Рисуем bbox
-                        g.setColor(Color.RED);
-                        g.setStroke(new BasicStroke(2));
-                        g.drawRect(x, y, bw, bh);
+                        // Защита от некорректных значений
+                        if (x >= 0 && y >= 0 && w > 0 && h > 0 &&
+                                x + w <= image.getWidth() && y + h <= image.getHeight()) {
+                            g.setColor(Color.RED);
+                            g.setStroke(new BasicStroke(2));
+                            g.drawRect(x, y, w, h);
+                        }
                     }
                 }
 
@@ -226,9 +216,7 @@ public class BboxController extends Controller {
         Platform.runLater(() -> cameraImageView.setImage(null));
 
         try {
-            if (detector != null) detector.close();
-            if (sessionPoints != null) sessionPoints.close();
-            if (envPoints != null) envPoints.close();
+            if (modelManager != null) modelManager.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

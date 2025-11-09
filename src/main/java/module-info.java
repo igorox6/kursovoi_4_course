@@ -11,6 +11,7 @@ module org.example.kursovoi_4_course_1 {
 
 
     opens org.example.kursovoi_4_course_1 to javafx.fxml;
+    opens org.example.kursovoi_4_course_1.DBClasses to javafx.base, javafx.fxml;
     exports org.example.kursovoi_4_course_1;
     exports org.example.kursovoi_4_course_1.Controllers;
     opens org.example.kursovoi_4_course_1.Controllers to javafx.fxml;

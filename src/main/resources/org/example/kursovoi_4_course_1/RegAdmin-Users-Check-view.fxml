@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.RegAdminUsersCheckController"
+            prefWidth="1000.0" prefHeight="600.0"
+            style="-fx-background-color: #efefef;">
+
+    <!-- Верхняя панель -->
+    <children>
+        <HBox spacing="10.0" alignment="CENTER_LEFT"
+              AnchorPane.topAnchor="10.0"
+              AnchorPane.leftAnchor="10.0"
+              AnchorPane.rightAnchor="10.0">
+            <children>
+                <ImageView fx:id="logoImageView"
+                           fitWidth="140.0" fitHeight="60.0"
+                           preserveRatio="true" smooth="true"
+                           pickOnBounds="true" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                    <children>
+                        <Label fx:id="adminName"
+                               text="Логин администратора"
+                               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #222;" />
+                        <StackPane prefWidth="36.0" prefHeight="36.0"
+                                   style="-fx-background-color: #222; -fx-background-radius: 18;">
+                            <children>
+                                <Label text="&#x1F464;" style="-fx-text-fill: white; -fx-font-size: 16px;" />
+                            </children>
+                        </StackPane>
+                    </children>
+                </HBox>
+            </children>
+        </HBox>
+
+        <!-- Основной контент: таблица по центру сверху, справа drawer -->
+        <HBox spacing="18.0"
+              AnchorPane.topAnchor="90.0"
+              AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0"
+              AnchorPane.bottomAnchor="20.0">
+
+            <!-- Центр: TableView пользователей (вверху) -->
+            <VBox spacing="8.0" prefWidth="740.0"
+                  style="-fx-background-color: transparent;">
+                <TableView fx:id="userTable" prefHeight="460.0" prefWidth="740.0" VBox.vgrow="ALWAYS"/>
+                <Region prefHeight="12.0"/>
+                <!-- кнопки внизу слева -->
+                <HBox spacing="10.0" alignment="TOP_LEFT">
+                    <children>
+                        <Button fx:id="editButton" onAction="#buttonEdit" text="Редактировать" prefWidth="140.0" style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-background-radius: 6;"/>
+                        <Button fx:id="addButton" onAction="#buttonAdd" text="Добавить" prefWidth="140.0" style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-background-radius: 6;"/>
+                    </children>
+                </HBox>
+            </VBox>
+
+            <AnchorPane fx:id="sideDrawer"
+                        AnchorPane.topAnchor="40.0"
+                        AnchorPane.rightAnchor="0.0"
+                        prefWidth="180.0" prefHeight="240.0"
+                        style="-fx-background-color: transparent;">
+                <children>
+                    <VBox alignment="TOP_RIGHT" spacing="8.0" prefWidth="180.0" prefHeight="240.0">
+                        <children>
+                            <Button fx:id="toggleButton"
+                                    text="←"
+                                    mnemonicParsing="false"
+                                    onAction="#handleToggleDrawer"
+                                    prefWidth="44.0" prefHeight="44.0"
+                                    style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 18px;" />
+
+                            <Button fx:id="typeDefButton"
+                                    text="Тип отображения"
+                                    onAction="#handleTypeBoxButton"
+                                    mnemonicParsing="false"
+                                    visible="false" opacity="0"
+                                    wrapText="true"
+                                    prefWidth="160.0" prefHeight="36.0"
+                                    style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;" />
+
+                            <Button fx:id="modelTypeButton"
+                                    text="Тип модели"
+                                    onAction="#handleTypeModelButton"
+                                    mnemonicParsing="false"
+                                    visible="false" opacity="0"
+                                    prefWidth="160.0" prefHeight="36.0"
+                                    style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8; " />
+
+                            <Button fx:id="usersButton"
+                                    text="Пользователи"
+                                    mnemonicParsing="false"
+                                    visible="false" opacity="0"
+                                    prefWidth="160.0" prefHeight="36.0"
+                                    style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8; -fx-border-color: #22252A; -fx-border-width: 3; -fx-border-radius: 8;" />
+
+                            <Button fx:id="logoutButton"
+                                    text="Выйти"
+                                    onAction="#handleLogout"
+                                    mnemonicParsing="false"
+                                    visible="false" opacity="0"
+                                    prefWidth="160.0" prefHeight="36.0"
+                                    style="-fx-background-color: #ff6a00; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;" />
+                        </children>
+                    </VBox>
+                </children>
+            </AnchorPane>
+
+        </HBox>
+    </children>
+</AnchorPane>

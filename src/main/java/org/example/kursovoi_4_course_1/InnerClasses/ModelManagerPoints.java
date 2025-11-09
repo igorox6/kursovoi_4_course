@@ -26,6 +26,11 @@ public class ModelManagerPoints {
      * Выполняет предсказание ключевых точек на кадре (face_crop).
      */
     public float[] runInference(BufferedImage faceCrop) throws OrtException {
+        if (faceCrop == null) {
+            System.err.println("Input faceCrop is null");
+            return null;
+        }
+
         int targetSize = 96;  // Изменено на 96, как в обучении
         int channels = 3;
 
@@ -60,15 +65,19 @@ public class ModelManagerPoints {
         long[] shape = {1, channels, targetSize, targetSize};
         OnnxTensor inputTensor = OnnxTensor.createTensor(env, buffer, shape);  // Используем env
 
-        Map<String, OnnxTensor> inputs = new HashMap<>();
-        inputs.put("input.1", inputTensor);  // Имя входа модели — "input"
+        try {
+            Map<String, OnnxTensor> inputs = new HashMap<>();
+            inputs.put("input.1", inputTensor);  // Имя входа модели — "input.1" (или "input" если ваша модель — скорректируйте если нужно)
 
-        OrtSession.Result result = session.run(inputs);
-        float[][] outputArray = (float[][]) result.get(0).getValue();
-        float[] keypoints = outputArray[0];  // 30 значений
+            OrtSession.Result result = session.run(inputs);
+            float[][] outputArray = (float[][]) result.get(0).getValue();
+            float[] keypoints = outputArray[0];  // 30 значений
+            System.out.println("Predicted keypoints: " + java.util.Arrays.toString(keypoints));  // Debug
 
-        inputTensor.close();
-        return keypoints;
+            return keypoints;
+        } finally {
+            inputTensor.close();
+        }
     }
 
     public void close() throws OrtException {

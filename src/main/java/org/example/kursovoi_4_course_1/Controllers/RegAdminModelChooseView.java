@@ -6,17 +6,19 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.example.kursovoi_4_course_1.InnerClasses.*;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.ResourceBundle;
 
 public class RegAdminModelChooseView extends Controller {
 
@@ -25,40 +27,42 @@ public class RegAdminModelChooseView extends Controller {
     private boolean drawerOpen = false;
     private JsonObject selectedModel;
 
+    // UI
     @FXML private ImageView logoImageView;
     @FXML private Label adminName;
     @FXML private ComboBox<String> typeComboBox;
     @FXML private ListView<String> modelListView;
-    @FXML private ImageView previewImageView;
-    @FXML private Label previewHint;
-    @FXML private Button drawerToggleButton;
-    @FXML private VBox drawerButtons;
+    @FXML private AnchorPane sideDrawer;       // animate this (как в Bbox)
+    @FXML private Button toggleButton;         // toggle id как в Bbox
+    @FXML private Button typeDefButton;
+    @FXML private Button modelTypeButton;
+    @FXML private Button usersButton;
+    @FXML private Button logoutButton;
+
     @FXML private Label versionLabel;
     @FXML private Label lossLabel;
     @FXML private Label releaseDateLabel;
     @FXML private TextArea commentTextArea;
     @FXML private Label currentUsedLabel;
     @FXML private Button applyButton;
-    @FXML private Button typeDefButton;
-    @FXML private Button modelTypeButton;
-    @FXML private Button usersButton;
-    @FXML private Button logoutButton;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         this.context = Context.getInstance();
 
-        // Загружаем логотип
-        loadIcons(logoImageView, 140);
+        // Логотип
+        loadIcons(logoImageView, 180);
 
-        // Имя админа
-        adminName.setText("Admin");
+        if (context.getAdminReg() != null) {
+            adminName.setText(context.getAdminReg().getLogin());
+        }
+        else{adminName.setText("Admin");}
 
         try {
             modelManager = new ModelManager();
             loadCurrentUsed();
 
-            // Типы моделей
+            // Типы
             typeComboBox.setItems(FXCollections.observableArrayList("FACE_BBOX", "FACE_KEYPOINTS"));
 
             // Слушатели
@@ -70,7 +74,19 @@ public class RegAdminModelChooseView extends Controller {
                 if (newVal != null) updateModelInfo(newVal);
             });
 
-            typeComboBox.getSelectionModel().selectFirst();
+            // Выбрать первый тип по-умолчанию
+            if (!typeComboBox.getItems().isEmpty()) typeComboBox.getSelectionModel().selectFirst();
+
+            // Изначально скрыть кнопки drawer (как в FXML, но на всякий случай)
+            typeDefButton.setVisible(false);
+            typeDefButton.setOpacity(0);
+            modelTypeButton.setVisible(false);
+            modelTypeButton.setOpacity(0);
+            usersButton.setVisible(false);
+            usersButton.setOpacity(0);
+            logoutButton.setVisible(false);
+            logoutButton.setOpacity(0);
+
         } catch (Exception e) {
             showAlert("Ошибка", "Не удалось загрузить модели: " + e.getMessage());
         }
@@ -83,12 +99,16 @@ public class RegAdminModelChooseView extends Controller {
         String b = bbox != null ? "V" + bbox.get("version").getAsString() : "—";
         String p = points != null ? "V" + points.get("version").getAsString() : "—";
 
-        currentUsedLabel.setText("Сейчас используются: BBOX - " + b + ", POINTS - " + p);
+        // Сделали короче формат — чтобы точно помещалось
+        currentUsedLabel.setText("Сейчас: BBOX " + b + "  POINTS " + p);
     }
 
     private void loadModelsForType(String type) {
         List<JsonObject> all = modelManager.getAllModelsInfo();
-        if (all == null) return;
+        if (all == null) {
+            modelListView.setItems(FXCollections.observableArrayList());
+            return;
+        }
 
         List<JsonObject> filtered = all.stream()
                 .filter(m -> m.get("type").getAsString().equals(type))
@@ -120,36 +140,62 @@ public class RegAdminModelChooseView extends Controller {
                 lossLabel.setText("Потери: " + m.get("loss").getAsString());
                 releaseDateLabel.setText("Дата: " + m.get("createdAt").getAsString());
                 commentTextArea.setText(m.get("comment").getAsString());
-                previewHint.setText("Превью модели: " + name);
-                previewImageView.setImage(null); // Можно добавить превью позже
                 break;
             }
         }
     }
 
+
     @FXML
-    private void onToggleDrawer() {
-        double distance = 200;
-        TranslateTransition slide = new TranslateTransition(Duration.millis(250), drawerButtons);
-        FadeTransition fade = new FadeTransition(Duration.millis(250), drawerButtons);
+    private void handleToggleDrawer() {
+        double distance = 10;
+        TranslateTransition slide = new TranslateTransition(Duration.millis(20), sideDrawer);
+        FadeTransition fadeTypeDef = new FadeTransition(Duration.millis(20), typeDefButton);
+        FadeTransition fadeModelType = new FadeTransition(Duration.millis(20), modelTypeButton);
+        FadeTransition fadeUsers = new FadeTransition(Duration.millis(20), usersButton);
+        FadeTransition fadeLogout = new FadeTransition(Duration.millis(20), logoutButton);
 
         if (!drawerOpen) {
-            drawerButtons.setVisible(true);
-            drawerButtons.setManaged(true);
-            slide.setByX(distance);
-            fade.setToValue(1.0);
-            drawerToggleButton.setText("←");
-        } else {
+            // выдвигаем внутрь
             slide.setByX(-distance);
-            fade.setToValue(0.0);
-            fade.setOnFinished(e -> {
-                drawerButtons.setVisible(false);
-                drawerButtons.setManaged(false);
+
+            fadeTypeDef.setToValue(1);
+            fadeModelType.setToValue(1);
+            fadeUsers.setToValue(1);
+            fadeLogout.setToValue(1);
+
+            typeDefButton.setVisible(true);
+            modelTypeButton.setVisible(true);
+            usersButton.setVisible(true);
+            logoutButton.setVisible(true);
+
+            toggleButton.setText("→");
+            toggleButton.setMaxWidth(170.0);
+        } else {
+            // задвигаем обратно
+            slide.setByX(distance);
+
+            fadeTypeDef.setToValue(0);
+            fadeModelType.setToValue(0);
+            fadeUsers.setToValue(0);
+            fadeLogout.setToValue(0);
+
+            fadeLogout.setOnFinished(e -> {
+                typeDefButton.setVisible(false);
+                modelTypeButton.setVisible(false);
+                usersButton.setVisible(false);
+                logoutButton.setVisible(false);
             });
-            drawerToggleButton.setText("→");
+
+            toggleButton.setText("←");
+            toggleButton.setMaxWidth(44.0);
         }
+
         slide.play();
-        fade.play();
+        fadeTypeDef.play();
+        fadeModelType.play();
+        fadeUsers.play();
+        fadeLogout.play();
         drawerOpen = !drawerOpen;
     }
 
@@ -181,14 +227,22 @@ public class RegAdminModelChooseView extends Controller {
         }
     }
 
-    @FXML private void handleTypeDef() { System.out.println("Тип определения"); }
-    @FXML private void handleModelType() { System.out.println("Тип модели"); }
-    @FXML private void handleUsers() { System.out.println("Пользователи"); }
+    public void handleTypeBoxButton(ActionEvent actionEvent) { context.switchScene("RegAdmin-Type-Display-view.fxml");}
+    @FXML private void handleUsers() { context.switchScene("RegAdmin-Users-Check-view.fxml"); }
 
     @FXML
     private void handleLogout() {
-        try { modelManager.close(); } catch (Exception ignored) {}
-        context.switchScene("Login-view.fxml");
+        try {
+            modelManager.close();
+            if (context.getIsAdminLogin()){
+                context.setIsAdminLogin(false);
+                context.switchScene("Bbox-view.fxml");
+            }
+            else{
+                context.switchScene("Login-view.fxml");
+            }
+        }
+        catch (Exception ignored) {}
     }
 
     private void showAlert(String title, String msg) {
@@ -200,4 +254,6 @@ public class RegAdminModelChooseView extends Controller {
             a.showAndWait();
         });
     }
+
+
 }

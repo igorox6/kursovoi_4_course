@@ -1,68 +1,146 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.example.kursovoi_4_course_1.Controllers.RegAdminModelChooseView"
-            prefWidth="650" prefHeight="400" style="-fx-background-color: #F8F8F8;">
+            prefWidth="900.0" prefHeight="520.0"
+            style="-fx-background-color: #efefef;">
 
-    <!-- Верхняя панель -->
-    <HBox spacing="10" alignment="CENTER_LEFT" layoutX="10" layoutY="10" prefWidth="630">
-        <ImageView fx:id="logoImageView" fitHeight="28" fitWidth="160"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="adminName" text="Admin" style="-fx-font-size:14; -fx-text-fill: #373737;"/>
-        <ImageView fitHeight="28" fitWidth="28" styleClass="profile-icon"/>
-    </HBox>
+    <children>
 
-    <!-- Основная область -->
-    <HBox spacing="10" layoutX="20" layoutY="60" prefWidth="610" prefHeight="320">
-        <!-- Левая колонка -->
-        <VBox spacing="8" prefWidth="180" style="-fx-background-color: #ECECEC; -fx-background-radius: 10; -fx-padding:12;">
-            <Label text="Тип модели" style="-fx-font-weight: bold; -fx-font-size: 15;"/>
-            <ComboBox fx:id="typeComboBox" promptText="Выберите тип"/>
-            <Label text="Доступные версии" style="-fx-font-size: 13;"/>
-            <ListView fx:id="modelListView" prefHeight="120"/>
-            <Label fx:id="currentUsedLabel" text="Сейчас используются: ..."
-                   style="-fx-font-size: 11; -fx-text-fill: #595959;" wrapText="true"/>
-            <Button fx:id="applyButton" text="Применить"
-                    style="-fx-background-color: #2B68BC; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;"/>
+        <!-- Верхняя панель (как в BboxController) -->
+        <VBox AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="6.0" spacing="6.0">
+            <children>
+                <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 6 12 6 12;">
+                    <children>
+                        <ImageView fx:id="logoImageView"
+                                   fitWidth="140.0" fitHeight="60.0"
+                                   preserveRatio="true" smooth="true" pickOnBounds="true" />
+
+                        <Region HBox.hgrow="ALWAYS" />
+
+                        <VBox alignment="CENTER_RIGHT" spacing="6.0">
+                            <children>
+                                <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                                    <children>
+                                        <Label fx:id="adminName"
+                                               text="Логин"
+                                               style="-fx-font-size: 14px; -fx-text-fill: #222222; -fx-font-weight: 600;" />
+                                        <StackPane prefWidth="36.0" prefHeight="36.0"
+                                                   style="-fx-background-color: #222; -fx-background-radius: 18;">
+                                            <children>
+                                                <Label text="&#x1F464;" style="-fx-text-fill: white; -fx-font-size: 14px;" />
+                                            </children>
+                                        </StackPane>
+                                    </children>
+                                </HBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </children>
         </VBox>
 
-        <!-- Центральная колонка -->
-        <VBox spacing="8" prefWidth="240" style="-fx-background-color: #ECECEC; -fx-background-radius: 10; -fx-padding:12;">
-            <Label text="Информация о модели" style="-fx-font-weight: bold; -fx-font-size: 15;"/>
-            <ScrollPane fitToWidth="true" style="-fx-background-radius: 8;">
-                <VBox spacing="6">
-                    <Label fx:id="versionLabel" text="Версия: —" style="-fx-font-size: 12;"/>
-                    <Label fx:id="lossLabel" text="Потери: —" style="-fx-font-size: 12;"/>
-                    <Label fx:id="releaseDateLabel" text="Дата: —" style="-fx-font-size: 12;"/>
-                    <Label text="Комментарий:" style="-fx-font-size: 12;"/>
-                    <TextArea fx:id="commentTextArea" prefRowCount="3" wrapText="true" editable="false"
-                              style="-fx-background-radius: 6; -fx-font-size: 12;"/>
-                </VBox>
-            </ScrollPane>
-            <Label fx:id="previewHint" text="Превью: —" style="-fx-font-size: 11;"/>
-            <ImageView fx:id="previewImageView" fitHeight="80" fitWidth="80" preserveRatio="true"/>
-        </VBox>
+        <!-- Основной контент: слева список/тип, центр — информация, справа drawer (как в Bbox) -->
+        <HBox AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="80.0" AnchorPane.rightAnchor="20.0" AnchorPane.bottomAnchor="30.0" spacing="18.0">
 
-        <!-- Правая колонка: боковое меню (выдвижное) -->
-        <VBox fx:id="drawerButtons" spacing="10" alignment="TOP_CENTER" prefWidth="90"
-              translateX="-200" visible="false" managed="false">
-            <Button fx:id="typeDefButton" text="Тип определения"
-                    style="-fx-background-color: #2B68BC; -fx-text-fill: white; -fx-background-radius: 10;"/>
-            <Button fx:id="modelTypeButton" text="Тип модели"
-                    style="-fx-background-color: #2B68BC; -fx-text-fill: white; -fx-background-radius: 10;"/>
-            <Button fx:id="usersButton" text="Пользователи"
-                    style="-fx-background-color: #2B68BC; -fx-text-fill: white; -fx-background-radius: 10;"/>
-            <Button fx:id="logoutButton" text="Выйти"
-                    style="-fx-background-color: #FF5300; -fx-text-fill: white; -fx-background-radius: 10;"/>
-        </VBox>
+            <!-- Левая панель: типы и список моделей -->
+            <VBox spacing="10.0" prefWidth="260.0"
+                  style="-fx-background-color: #E6E6E6; -fx-background-radius: 8; -fx-padding: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6,0,0,2);">
+                <Label text="Типы моделей" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #222;" />
+                <ComboBox fx:id="typeComboBox" promptText="Выберите тип" prefWidth="220.0" style="-fx-font-size: 13px;"/>
+                <Label text="Доступные версии" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <ListView fx:id="modelListView" prefHeight="150.0" style="-fx-background-radius: 6; -fx-border-radius: 6;"/>
+                <Label fx:id="currentUsedLabel"
+                       text="Сейчас используются: BBOX - —, POINTS - —"
+                       wrapText="true"
+                       style="-fx-font-size: 11px; -fx-text-fill: #333;" />
+                <Button fx:id="applyButton" text="Применить" prefWidth="180.0" prefHeight="36.0"
+                        style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 14px;"/>
+            </VBox>
 
-        <!-- Кнопка открытия/закрытия drawer -->
-        <Button fx:id="drawerToggleButton" text="→" layoutX="610" layoutY="60"
-                style="-fx-background-color: #2B68BC; -fx-text-fill: white; -fx-font-size: 16; -fx-background-radius: 50;"
-                onAction="#onToggleDrawer"/>
-    </HBox>
+            <!-- Центральная панель: информация о модели (без превью) -->
+            <VBox spacing="10.0" prefWidth="420.0"
+                  style="-fx-background-color: #E6E6E6; -fx-background-radius: 8; -fx-padding: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 6,0,0,2);">
+                <Label fx:id="selectedModelTitle" text="Информация о модели" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #222;"/>
+                <GridPane hgap="8.0" vgap="8.0">
+                    <columnConstraints>
+                        <ColumnConstraints prefWidth="120" />
+                        <ColumnConstraints prefWidth="260" />
+                    </columnConstraints>
+
+                    <children>
+                        <Label text="Версия:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-size:13px; -fx-font-weight:600;"/>
+                        <Label fx:id="versionLabel" text="—" GridPane.rowIndex="0" GridPane.columnIndex="1" style="-fx-font-size:13px;"/>
+
+                        <Label text="Потери:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-size:13px; -fx-font-weight:600;"/>
+                        <Label fx:id="lossLabel" text="—" GridPane.rowIndex="1" GridPane.columnIndex="1" style="-fx-font-size:13px;"/>
+
+                        <Label text="Дата выхода:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-size:13px; -fx-font-weight:600;"/>
+                        <Label fx:id="releaseDateLabel" text="—" GridPane.rowIndex="2" GridPane.columnIndex="1" style="-fx-font-size:13px;"/>
+
+                        <Label text="Комментарий:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-size:13px; -fx-font-weight:600;"/>
+                        <TextArea fx:id="commentTextArea" GridPane.rowIndex="3" GridPane.columnIndex="1" prefRowCount="4" wrapText="true" editable="false" style="-fx-font-size:13px; -fx-background-radius:6;" />
+                    </children>
+                </GridPane>
+            </VBox>
+
+            <AnchorPane fx:id="sideDrawer"
+                        AnchorPane.topAnchor="60.0"
+                        AnchorPane.rightAnchor="0.0"
+                        prefWidth="180.0" prefHeight="220.0"
+                        style="-fx-background-color: transparent;">
+                <children>
+                    <VBox alignment="TOP_RIGHT" spacing="8.0" prefWidth="180.0" prefHeight="220.0">
+                        <!-- toggle button (как в Bbox) -->
+                        <Button fx:id="toggleButton"
+                                text="←"
+                                mnemonicParsing="false"
+                                onAction="#handleToggleDrawer"
+                                prefWidth="44.0" prefHeight="44.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 18px;" />
+
+                        <!-- Кнопки, которые появляются при выдвижении (по-умолчанию скрыты, как в Bbox) -->
+                        <Button fx:id="typeDefButton"
+                                text="Тип отображения"
+                                onAction="#handleTypeBoxButton"
+                                mnemonicParsing="false"
+                                visible="false" opacity="0"
+                                wrapText="true"
+                                prefWidth="160.0" prefHeight="36.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;" />
+
+                        <Button fx:id="modelTypeButton"
+                                text="Тип модели"
+
+                                mnemonicParsing="false"
+                                visible="false" opacity="0"
+                                prefWidth="160.0" prefHeight="36.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;
+                                 -fx-border-color: #22252A;-fx-border-width: 3; -fx-border-radius: 8; " />
+
+                        <Button fx:id="usersButton"
+                                text="Пользователи"
+                                onAction="#handleUsers"
+                                mnemonicParsing="false"
+                                visible="false" opacity="0"
+                                prefWidth="160.0" prefHeight="36.0"
+                                style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;" />
+
+                        <Button fx:id="logoutButton"
+                                text="Выйти"
+                                onAction="#handleLogout"
+                                mnemonicParsing="false"
+                                visible="false" opacity="0"
+                                prefWidth="160.0" prefHeight="36.0"
+                                style="-fx-background-color: #ff6a00; -fx-text-fill: white; -fx-font-weight: 600; -fx-background-radius: 8;" />
+                    </VBox>
+                </children>
+            </AnchorPane>
+
+        </HBox>
+    </children>
 </AnchorPane>

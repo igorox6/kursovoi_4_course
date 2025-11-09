@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -27,7 +28,6 @@ import java.util.ResourceBundle;
 
 public class LoginController extends Controller {
 
-    private Application app;
     private Context context;
 
     @FXML
@@ -44,15 +44,10 @@ public class LoginController extends Controller {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
         this.context = Context.getInstance();
-        this.app = context.getApp();
         loadIcons(logoImageView,180);
-        //TODO НЕ РАБОТАЕТ
-        if (context != null) {
-            if (context.getIsAdminLogin()){ // авторизация после обычного пользователя, включаем возможность вернуться назад
-                backButton.setVisible(true);
-            }
+        if (context.getIsAdminLogin()){
+            backButton.setVisible(true);
         }
     }
 
@@ -72,20 +67,37 @@ public class LoginController extends Controller {
 
 
         if (result.get("status") == "success") {
-            if (user.getRole() == RoleType.ADMIN) { // логин за админа от приложения
+            if (context.getIsAdminLogin()){ // Вход за админа от компании после bbox
+                if (user.getRole() != RoleType.REGIONAL_ADMIN) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Ошибка");
+                    alert.setHeaderText("Сейчас может авторизовываться только администратор");
+                    context.setIsAdminLogin(false);
+                    context.switchScene("Bbox-view.fxml");
+                }
+                else{
+                    context.setAdminReg(user);
+                    context.switchScene("RegAdmin-Type-Display-view.fxml");
+                }
+            }
+            else{
+                if (user.getRole() == RoleType.ADMIN) { // логин за админа от приложения
 
-            }
-            else if (user.getRole() == RoleType.REGADMIN){ // логин за админа от компании
-                context.setAdminReg(user);
+                }
+                else if (user.getRole() == RoleType.REGIONAL_ADMIN){ // логин за админа от компании
+                    context.setAdminReg(user);
+                    context.switchScene("RegAdmin-Type-Display-view.fxml");
+                }
+
+                else if (user.getRole() == RoleType.USER){
+                    context.setUser(user);
+                    context.switchScene("Bbox-view.fxml");
+                }
+                else {
+                    //Ошибка
+                }
             }
 
-            else if (user.getRole() == RoleType.USER){
-                context.setUser(user);
-                context.switchScene("Bbox-view.fxml");
-            }
-            else {
-                //Ошибка
-            }
         }
         else{
             System.out.println("не успэх");
@@ -95,7 +107,7 @@ public class LoginController extends Controller {
     }
     @FXML
     protected void getBack(){
-        System.out.println(1);
+        context.switchScene("Bbox-view.fxml");
     }
 
 

@@ -4,18 +4,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class User {
     private Long id;
     private String login;
@@ -31,16 +36,50 @@ public class User {
 
     private UserSettings user_settings;
     private RoleType role;
-    private Gson gson;
-    private HttpClient client;
+    private Gson gson = new Gson();
+    private HttpClient client = HttpClient.newHttpClient();
 
-    public User(){
-        role = RoleType.USER;
-        gson = new Gson();
-        client = HttpClient.newHttpClient();
+    // ======================== РАЗБОР МАССИВА ==========================
+    public static List<User> parseUsersArray(String jsonArray) {
+        Gson gson = new Gson();
+        Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
+        List<Map<String, Object>> maps = gson.fromJson(jsonArray, listType);
+
+        List<User> users = new ArrayList<>();
+        for (Map<String, Object> m : maps) {
+            users.add(fromMap(m));
+        }
+        return users;
     }
 
-    //TODO добавить чтение предпочитаемого отображения (настройки) из файла
+    // ======================== СОЗДАНИЕ User ИЗ MAP =====================
+    private static User fromMap(Map<String, Object> m) {
+        User u = new User();
+
+        if (m.get("id") != null) u.id = ((Number) m.get("id")).longValue();
+        u.login = (String) m.get("login");
+        u.password = (String) m.get("passwordHash");
+        u.is_active = (Boolean) m.get("isActive");
+        u.name = (String) m.get("name");
+        u.second_name = (String) m.get("secondName");
+        u.patronymic_name = (String) m.get("patronymicName");
+
+        // роль
+        Object roleObj = m.get("role");
+        if (roleObj instanceof Map<?, ?> roleMap) {
+            Object roleName = roleMap.get("name");
+            if (roleName != null)
+                u.role = RoleType.valueOf(roleName.toString().toUpperCase());
+        }
+
+        // даты
+        if (m.get("createdAt") != null) u.created_at = OffsetDateTime.parse((String) m.get("createdAt"));
+        if (m.get("updatedAt") != null) u.updated_at = OffsetDateTime.parse((String) m.get("updatedAt"));
+        if (m.get("lastLogin") != null) u.last_login = OffsetDateTime.parse((String) m.get("lastLogin"));
+
+        return u;
+    }
+
     public Map<String, Object> login (){
         String url = "http://localhost:8080/users/login";
         if (login == null || password == null) {
@@ -75,7 +114,8 @@ public class User {
             this.patronymic_name = (String) userMap.get("patronymicName");
             this.created_at = OffsetDateTime.parse((String) userMap.get("createdAt"));
             this.updated_at = OffsetDateTime.parse((String) userMap.get("updatedAt"));
-            this.last_login = OffsetDateTime.parse((String) userMap.get("lastLogin"));
+            if (userMap.get("lastLogin") != null)
+                this.last_login = OffsetDateTime.parse((String) userMap.get("lastLogin"));
 
             result.put("status", "success");
             result.put("id", this.id);
@@ -93,9 +133,9 @@ public class User {
             result.put("message", "Ошибка при входе: " + e.getMessage());
         }
 
-
         return result;
     }
+
     protected HttpResponse<String> sendRequest(HttpRequest request) {
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -110,5 +150,4 @@ public class User {
             throw new RuntimeException(e);
         }
     }
-
 }

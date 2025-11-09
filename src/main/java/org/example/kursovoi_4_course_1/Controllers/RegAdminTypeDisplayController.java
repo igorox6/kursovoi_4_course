@@ -91,11 +91,14 @@ public class RegAdminTypeDisplayController extends Controller {
         this.context = Context.getInstance();
         this.app = context.getApp();
 
-        loadIcons(logoImageView,140);
+        loadIcons(logoImageView,180);
         model1Value.setText("w2201");
         model2Value.setText("waw201");
 
-        adminName.setText("Админк");
+        if (context.getAdminReg() != null) {
+            adminName.setText(context.getAdminReg().getLogin());
+        }
+        else{adminName.setText("Admin");}
 
         // Инициализация выдвижной панели
         adminButton.setVisible(false);
@@ -106,7 +109,7 @@ public class RegAdminTypeDisplayController extends Controller {
         drawerOpen = false;
 
         // Выделение выбранного типа по умолчанию
-        selectType(typeBox3);
+        selectType(typeBox2);
 
         // Установка начального изображения (заменить на реальный путь)
         cameraImageView.setImage(new Image(getClass().getResourceAsStream("/images/silhouette_1.png")));
@@ -115,7 +118,7 @@ public class RegAdminTypeDisplayController extends Controller {
 
     @FXML
     private void handleToggleDrawer() {
-        double distance = 180.0;
+        double distance = 10.0;
         TranslateTransition slide = new TranslateTransition(Duration.millis(200), sideDrawer);
         FadeTransition fadeAdmin = new FadeTransition(Duration.millis(20), adminButton);
         FadeTransition fadeModel = new FadeTransition(Duration.millis(20), modelButton);
@@ -199,13 +202,13 @@ public class RegAdminTypeDisplayController extends Controller {
         String imagePath;
         switch (type) {
             case "ramka":
-                imagePath = "/images/silhouette_1.png"; // Заменить на реальный путь к изображению для "Рамка"
+                imagePath = "/images/silhouette_3.png"; // Заменить на реальный путь к изображению для "Рамка"
                 break;
             case "tochki":
                 imagePath = "/images/silhouette_1.png"; // Заменить на реальный путь к изображению для "Ключевые точки"
                 break;
             case "ramka_s_tochkami":
-                imagePath = "/images/silhouette_1.png"; // Заменить на реальный путь к изображению для "Рамка с точками"
+                imagePath = "/images/silhouette_2.png"; // Заменить на реальный путь к изображению для "Рамка с точками"
                 break;
             default:
                 imagePath = "/images/silhouette_1.png";
@@ -242,28 +245,27 @@ public class RegAdminTypeDisplayController extends Controller {
         // context.switchScene("SomeOtherView.fxml");
     }
 
-    @FXML
-    private void handleAdminLogin() {
-        // Логика для "Тип отображения" - возможно, уже на этой странице, или переключение
-        // context.switchScene("AdminDisplayType-view.fxml"); // Или что-то подобное
-    }
+
 
     @FXML
     private void handleLogout() {
-        context.switchScene("Login-view.fxml");
+        if (context.getIsAdminLogin()){
+            context.setIsAdminLogin(false);
+            context.switchScene("Bbox-view.fxml");
+        }
+        else{
+            context.switchScene("Login-view.fxml");
+        }
     }
 
-    // Добавьте handlers для других кнопок если нужно
     @FXML
     private void handleModelType() {
-        // Логика для "Тип модели"
-        context.switchScene("ModelType-view.fxml"); // Пример
+        context.switchScene("RegAdmin-Model-choose-view.fxml");
     }
 
     @FXML
     private void handleUsers() {
-        // Логика для "Пользователи"
-        context.switchScene("Users-view.fxml"); // Пример
+        context.switchScene("RegAdmin-Users-Check-view.fxml");
     }
 
 
