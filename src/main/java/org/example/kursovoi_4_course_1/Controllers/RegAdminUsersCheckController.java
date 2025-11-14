@@ -44,7 +44,6 @@ public class RegAdminUsersCheckController extends Controller {
     @FXML private Button editButton;
     @FXML private Button addButton;
 
-    // drawer related
     @FXML private AnchorPane sideDrawer;
     @FXML private Button toggleButton;
     @FXML private Button typeDefButton;
@@ -77,10 +76,8 @@ public class RegAdminUsersCheckController extends Controller {
             List<User> users = context.getUsersAdmin();
             ObservableList<User> observableUsers = FXCollections.observableArrayList(users);
 
-            // Очищаем старые колонки, если они были
             userTable.getColumns().clear();
 
-            // Создаём и настраиваем колонки
             TableColumn<User, Long> idColumn = new TableColumn<>("ID");
             idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
 
@@ -120,13 +117,11 @@ public class RegAdminUsersCheckController extends Controller {
                                     ? cellData.getValue().getLast_login().toLocalDate().toString()
                                     : ""
                     ));
-            // 4️⃣ Добавляем колонки в таблицу
             userTable.getColumns().addAll(
                     idColumn, loginColumn, nameColumn, secondNameColumn, patronymicNameColumn,
                      activeColumn, createdColumn,updatedColumn,lastLoginColumn
             );
 
-            // 5️⃣ Заполняем таблицу данными
             userTable.setItems(observableUsers);
 
         } catch (Exception e) {
@@ -180,7 +175,6 @@ public class RegAdminUsersCheckController extends Controller {
         FadeTransition fadeLogout = new FadeTransition(Duration.millis(20), logoutButton);
 
         if (!drawerOpen) {
-            // выдвигаем внутрь
             slide.setByX(-distance);
 
             fadeTypeDef.setToValue(1);
@@ -196,7 +190,6 @@ public class RegAdminUsersCheckController extends Controller {
             toggleButton.setText("→");
             toggleButton.setMaxWidth(170.0);
         } else {
-            // задвигаем обратно
             slide.setByX(distance);
 
             fadeTypeDef.setToValue(0);

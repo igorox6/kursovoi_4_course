@@ -7,10 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Логин по умолчанию читаемый — 6 символов, чередуются согласная/гласная.
- * Пароль по умолчанию длиной 10, содержит минимум 1 верх. регистр, 1 ниж.регистр, 1 цифру, 1 спец.знак.
- */
+
 @NoArgsConstructor
 public final class RandomUserGenerator {
 
@@ -76,8 +73,8 @@ public final class RandomUserGenerator {
     }
 
     public static void main(String[] args) {
-        String login = generateLogin();           // читаемый логин из 6 символов
-        String password = generatePassword();     // читаемый, но сильный пароль
+        String login = generateLogin();
+        String password = generatePassword();
 
         System.out.println("Login: " + login);
         System.out.println("Password: " + password);

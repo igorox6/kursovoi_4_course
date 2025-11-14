@@ -5,14 +5,14 @@
 <?import javafx.scene.layout.*?>
 
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.example.kursovoi_4_course_1.Controllers.RegAdminModelChooseView"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.RegAdminModelChooseController"
             prefWidth="900.0" prefHeight="520.0"
             style="-fx-background-color: #efefef;">
 
     <children>
 
         <!-- Верхняя панель (как в BboxController) -->
-        <VBox AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="6.0" spacing="6.0">
+        <VBox AnchorPane.leftAnchor="-2.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="4.0" spacing="6.0">
             <children>
                 <HBox spacing="10.0" alignment="CENTER_LEFT" style="-fx-padding: 6 12 6 12;">
                     <children>

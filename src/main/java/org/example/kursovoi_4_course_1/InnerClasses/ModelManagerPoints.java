@@ -8,71 +8,54 @@ import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Дочерний класс для POINTS-модели.
- * Инициализируется байтами модели, использует общий OrtEnvironment.
- */
+
 public class ModelManagerPoints {
 
     private final OrtSession session;
-    private final OrtEnvironment env;  // Добавляем поле для env
+    private final OrtEnvironment env;
 
     public ModelManagerPoints(OrtEnvironment env, byte[] modelBytes) throws OrtException {
         this.env = env;
         this.session = env.createSession(modelBytes, new OrtSession.SessionOptions());
     }
 
-    /**
-     * Выполняет предсказание ключевых точек на кадре (face_crop).
-     */
+
     public float[] runInference(BufferedImage faceCrop) throws OrtException {
         if (faceCrop == null) {
             System.err.println("Input faceCrop is null");
             return null;
         }
 
-        int targetSize = 96;  // Изменено на 96, как в обучении
-        int channels = 3;
-
-        // Преобразуем в grayscale
-        BufferedImage gray = new BufferedImage(faceCrop.getWidth(), faceCrop.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g = gray.createGraphics();
-        g.drawImage(faceCrop, 0, 0, null);
-        g.dispose();
-
-        // Ресайз до 96x96
+        int targetSize = 96;
+        int channels = 1;
         BufferedImage resized = new BufferedImage(targetSize, targetSize, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g2 = resized.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2.drawImage(gray, 0, 0, targetSize, targetSize, null);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(faceCrop, 0, 0, targetSize, targetSize, null);
         g2.dispose();
 
-        // Преобразуем в [1,3,96,96] без нормализации (только [0,1], повтор по каналам)
         float[] inputData = new float[1 * channels * targetSize * targetSize];
         java.awt.image.Raster raster = resized.getRaster();
         int idx = 0;
         for (int y = 0; y < targetSize; y++) {
             for (int x = 0; x < targetSize; x++) {
-                float v = raster.getSample(x, y, 0) / 255.0f;
-                for (int c = 0; c < channels; c++) {
-                    inputData[idx++] = v;  // Без mean/std
-                }
+                int pixel = raster.getSample(x, y, 0);
+                float val = ((pixel / 255.0f) - 0.5f) / 0.5f;
+                inputData[idx++] = val;
             }
         }
 
         FloatBuffer buffer = FloatBuffer.wrap(inputData);
         long[] shape = {1, channels, targetSize, targetSize};
-        OnnxTensor inputTensor = OnnxTensor.createTensor(env, buffer, shape);  // Используем env
+        OnnxTensor inputTensor = OnnxTensor.createTensor(env, buffer, shape);
 
         try {
             Map<String, OnnxTensor> inputs = new HashMap<>();
-            inputs.put("input.1", inputTensor);  // Имя входа модели — "input.1" (или "input" если ваша модель — скорректируйте если нужно)
+            inputs.put("input", inputTensor);
 
             OrtSession.Result result = session.run(inputs);
             float[][] outputArray = (float[][]) result.get(0).getValue();
-            float[] keypoints = outputArray[0];  // 30 значений
-            System.out.println("Predicted keypoints: " + java.util.Arrays.toString(keypoints));  // Debug
+            float[] keypoints = outputArray[0];
 
             return keypoints;
         } finally {

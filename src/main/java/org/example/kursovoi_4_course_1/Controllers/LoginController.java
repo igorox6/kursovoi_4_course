@@ -56,7 +56,6 @@ public class LoginController extends Controller {
 
     @FXML
     protected void handleLogin() {
-        //TODO добавление в логи авторизации
         User user = new User();
 
         user.setLogin(loginField.getText());
@@ -82,6 +81,7 @@ public class LoginController extends Controller {
             }
             else{
                 if (user.getRole() == RoleType.ADMIN) { // логин за админа от приложения
+                    context.switchScene("Admin-Home-view.fxml");
 
                 }
                 else if (user.getRole() == RoleType.REGIONAL_ADMIN){ // логин за админа от компании
@@ -94,13 +94,13 @@ public class LoginController extends Controller {
                     context.switchScene("Bbox-view.fxml");
                 }
                 else {
-                    //Ошибка
+                    System.out.println("Ошибка");
                 }
             }
 
         }
         else{
-            System.out.println("не успэх");
+            System.out.println("Авторизация не успешна");
         }
 
 

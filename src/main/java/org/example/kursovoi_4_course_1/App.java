@@ -27,12 +27,14 @@ public class App extends Application {
 
         this.primaryStage = stage;
         rootLayout = new StackPane();
-        primaryStage.setTitle("Hello!");
+        primaryStage.setTitle("VisionMark");
         primaryStage.setScene(new Scene(rootLayout, 800, 450));
 
 
-        switchScene("Bbox-view.fxml");
-        //switchScene("Login-view.fxml");
+        //switchScene("Bbox-view.fxml");
+        //switchScene("Admin-Home-view.fxml");
+        //switchScene("RegAdmin-Model-choose-view.fxml");
+        switchScene("Login-view.fxml");
         primaryStage.show();
     }
 

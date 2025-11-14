@@ -39,7 +39,6 @@ public class User {
     private Gson gson = new Gson();
     private HttpClient client = HttpClient.newHttpClient();
 
-    // ======================== РАЗБОР МАССИВА ==========================
     public static List<User> parseUsersArray(String jsonArray) {
         Gson gson = new Gson();
         Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
@@ -52,8 +51,7 @@ public class User {
         return users;
     }
 
-    // ======================== СОЗДАНИЕ User ИЗ MAP =====================
-    private static User fromMap(Map<String, Object> m) {
+    public static User fromMap(Map<String, Object> m) {
         User u = new User();
 
         if (m.get("id") != null) u.id = ((Number) m.get("id")).longValue();
@@ -64,7 +62,6 @@ public class User {
         u.second_name = (String) m.get("secondName");
         u.patronymic_name = (String) m.get("patronymicName");
 
-        // роль
         Object roleObj = m.get("role");
         if (roleObj instanceof Map<?, ?> roleMap) {
             Object roleName = roleMap.get("name");
@@ -72,7 +69,6 @@ public class User {
                 u.role = RoleType.valueOf(roleName.toString().toUpperCase());
         }
 
-        // даты
         if (m.get("createdAt") != null) u.created_at = OffsetDateTime.parse((String) m.get("createdAt"));
         if (m.get("updatedAt") != null) u.updated_at = OffsetDateTime.parse((String) m.get("updatedAt"));
         if (m.get("lastLogin") != null) u.last_login = OffsetDateTime.parse((String) m.get("lastLogin"));
@@ -81,13 +77,35 @@ public class User {
     }
 
     public Map<String, Object> login (){
+        String ipAddress = "";
+        try {
+            HttpClient ipClient = HttpClient.newHttpClient();
+            HttpRequest ipRequest = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.ipify.org"))
+                    .GET()
+                    .build();
+            HttpResponse<String> ipResponse = ipClient.send(ipRequest, HttpResponse.BodyHandlers.ofString());
+            if (ipResponse.statusCode() == 200) {
+                ipAddress = ipResponse.body().trim();
+            }
+
+        } catch (Exception e) {
+            System.err.println("IP fetch error: " + e.getMessage());
+            ipAddress = "";
+        }
+
         String url = "http://localhost:8080/users/login";
         if (login == null || password == null) {
             throw new RuntimeException("Login and password are required");
         }
-        Map<String, String> requestBody = new HashMap<>();
+
+        Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("login", login);
         requestBody.put("password", password);
+        if (!ipAddress.isEmpty()) {
+            requestBody.put("ipAddress", ipAddress);
+        }
+
         String json = gson.toJson(requestBody);
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -95,11 +113,13 @@ public class User {
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
-        System.out.println("POST request: " + json);
+
+        System.out.println("POST /users/login body: " + json);
+
         Map<String, Object> result = new HashMap<>();
-        try{
+        try {
             HttpResponse<String> response = sendRequest(request);
-            Map<String, Object> responseBody = (gson.fromJson(response.body(), Map.class));
+            Map<String, Object> responseBody = gson.fromJson(response.body(), Map.class);
 
             Map<String, Object> userMap = (Map<String, Object>) responseBody.get("user");
 
@@ -133,8 +153,10 @@ public class User {
             result.put("message", "Ошибка при входе: " + e.getMessage());
         }
 
+
         return result;
     }
+
 
     protected HttpResponse<String> sendRequest(HttpRequest request) {
         try {

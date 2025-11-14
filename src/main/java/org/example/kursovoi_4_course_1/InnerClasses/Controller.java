@@ -1,5 +1,6 @@
 package org.example.kursovoi_4_course_1.InnerClasses;
 
+import ai.onnxruntime.OrtException;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -18,8 +19,6 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     protected Context context;
-
-
     protected void loadIcons(ImageView logoImageView, int WidthPixels){
         BufferedImageTranscoder trans = new BufferedImageTranscoder();
         InputStream file = null;

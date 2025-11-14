@@ -2,7 +2,6 @@ package org.example.kursovoi_4_course_1.InnerClasses;
 
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.google.gson.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,14 +16,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-/**
- * Родительский класс для управления моделями.
- * Обеспечивает загрузку метаданных из /models/info, выбор лучших моделей по типам,
- * загрузку полных моделей по ID, инициализацию дочерних менеджеров.
- * Также содержит общий метод upload и OrtEnvironment.
- */
 
 @Getter
 @Setter
@@ -38,173 +35,297 @@ public class ModelManager {
     private ModelManagerPoints pointsManager;
     private JsonObject bestBboxMeta;
     private JsonObject bestPointsMeta;
-    private List<JsonObject> allModelsInfo; // Кэш метаданных из /info
+    private List<JsonObject> allModelsInfo;
+    private final HttpClient httpClient;
+    private final ExecutorService executor;
 
-    public ModelManager() throws OrtException, IOException, InterruptedException {
+
+    public ModelManager() throws OrtException {
         this.env = OrtEnvironment.getEnvironment();
-        refreshModels();
+        this.httpClient = HttpClient.newHttpClient();
+        this.allModelsInfo = new ArrayList<>();  // Empty cache initially
+        this.executor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r);
+            t.setDaemon(true);  // Daemon to not block JVM shutdown
+            return t;
+        });
+        this.bboxManager = null;
+        this.pointsManager = null;
+        this.bestBboxMeta = null;
+        this.bestPointsMeta = null;
     }
 
-    /**
-     * Обновляет все модели: загружает метаданные, выбирает лучшие, загружает байты, инициализирует дочерние.
-     */
-    public void refreshModels() throws IOException, InterruptedException, OrtException {
-        allModelsInfo = fetchAllInfo();
-        bestBboxMeta = findBestByType("FACE_BBOX");
-        bestPointsMeta = findBestByType("FACE_KEYPOINTS");
 
-        if (bestBboxMeta != null) {
-            byte[] bboxBytes = fetchModelBytesById(bestBboxMeta.get("id").getAsInt());
-            if (bboxBytes != null && bboxBytes.length > 0) {
-                bboxManager = new ModelManagerBbox(env, bboxBytes);
-                System.out.println("Loaded BBOX model ID: " + bestBboxMeta.get("id"));
-            } else {
-                System.err.println("Failed to load BBOX bytes");
+    public CompletableFuture<Void> asyncInit() {
+        return asyncRefreshModels();
+    }
+
+
+    public CompletableFuture<Void> asyncRefreshModels() {
+        return fetchAllInfoAsync(false)
+                .thenCompose(infos -> {
+                    allModelsInfo = infos;
+                    bestBboxMeta = findBestByType("FACE_BBOX");
+                    bestPointsMeta = findBestByType("FACE_KEYPOINTS");
+
+                    List<CompletableFuture<Void>> loads = new ArrayList<>();
+                    if (bestBboxMeta != null) {
+                        loads.add(fetchModelBytesByIdAsync(bestBboxMeta.get("id").getAsInt())
+                                .thenAccept(bytes -> {
+                                    if (bytes != null && bytes.length > 0) {
+                                        try {
+                                            bboxManager = new ModelManagerBbox(env, bytes);
+                                        } catch (OrtException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        System.out.println("Loaded BBOX model ID: " + bestBboxMeta.get("id"));
+                                    } else {
+                                        System.err.println("Failed to load BBOX bytes");
+                                    }
+                                }));
+                    } else {
+                        System.err.println("No best BBOX model found");
+                    }
+
+                    if (bestPointsMeta != null) {
+                        loads.add(fetchModelBytesByIdAsync(bestPointsMeta.get("id").getAsInt())
+                                .thenAccept(bytes -> {
+                                    if (bytes != null && bytes.length > 0) {
+                                        try {
+                                            pointsManager = new ModelManagerPoints(env, bytes);
+                                        } catch (OrtException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                        System.out.println("Loaded POINTS model ID: " + bestPointsMeta.get("id"));
+                                    } else {
+                                        System.err.println("Failed to load POINTS bytes");
+                                    }
+                                }));
+                    } else {
+                        System.err.println("No best POINTS model found");
+                    }
+
+                    return CompletableFuture.allOf(loads.toArray(new CompletableFuture[0]));
+                })
+                .thenRun(() -> System.out.println("Models refreshed successfully"))
+                .exceptionally(ex -> {
+                    System.err.println("Error in refreshModels: " + ex.getMessage());
+                    ex.printStackTrace();
+                    return null;
+                });
+    }
+
+
+    public void refreshModelsSync() throws IOException, InterruptedException, OrtException {
+        try {
+            asyncRefreshModels().get();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to refresh models synchronously", e);
+        }
+    }
+
+
+    public CompletableFuture<List<JsonObject>> fetchAllInfoAsync(boolean allModels) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String endpoint = allModels ? "/infoAll" : "/info";
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_BASE_URL + endpoint))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new IOException("Failed to fetch models info: " + response.statusCode() + " - " + response.body());
+                }
+
+                JsonArray modelsArray = JsonParser.parseString(response.body()).getAsJsonArray();
+                List<JsonObject> list = new ArrayList<>();
+                for (JsonElement element : modelsArray) {
+                    if (element.isJsonObject()) {
+                        list.add(element.getAsJsonObject());
+                    }
+                }
+                System.out.println("Fetched " + list.size() + " models info from " + endpoint);
+                return list;
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException("Failed to fetchAllInfo: " + e.getMessage(), e);
             }
-        } else {
-            System.err.println("No best BBOX model found");
-        }
+        }, executor);
+    }
 
-        if (bestPointsMeta != null) {
-            byte[] pointsBytes = fetchModelBytesById(bestPointsMeta.get("id").getAsInt());
-            if (pointsBytes != null && pointsBytes.length > 0) {
-                pointsManager = new ModelManagerPoints(env, pointsBytes);
-                System.out.println("Loaded POINTS model ID: " + bestPointsMeta.get("id"));
-            } else {
-                System.err.println("Failed to load POINTS bytes");
+
+    public List<JsonObject> fetchAllInfo(boolean allModels) throws IOException, InterruptedException {
+        try {
+            return fetchAllInfoAsync(allModels).get();
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                Throwable cause = e.getCause();
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                } else if (cause instanceof InterruptedException) {
+                    throw (InterruptedException) cause;
+                }
             }
-        } else {
-            System.err.println("No best POINTS model found");
+            throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Загружает метаданные всех моделей из /models/info.
-     * @return List<JsonObject> с данными (id, type, version, loss, comment, size, createdAt)
-     */
-    public List<JsonObject> fetchAllInfo() throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(API_BASE_URL + "/info"))
-                .GET()
-                .build();
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new IOException("Failed to fetch models info: " + response.statusCode());
+    public JsonObject findBestByType(String type) {
+        if (allModelsInfo == null || allModelsInfo.isEmpty()) {
+            return null;
         }
-
-        JsonArray modelsArray = JsonParser.parseString(response.body()).getAsJsonArray();
-        List<JsonObject> list = new ArrayList<>();
-        for (JsonElement element : modelsArray) {
-            list.add(element.getAsJsonObject());
-        }
-        System.out.println("Fetched " + list.size() + " models info");  // Debug
-        return list;
-    }
-
-    /**
-     * Находит лучшую модель по типу (максимальная версия, при равенстве — минимальный loss).
-     * @param type Тип модели (FACE_BBOX или FACE_KEYPOINTS)
-     * @return JsonObject метаданных лучшей модели или null, если не найдено
-     */
-    private JsonObject findBestByType(String type) {
         return allModelsInfo.stream()
-                .filter(m -> m.get("type").getAsString().equals(type))
-                .max(Comparator.comparingInt((JsonObject m) -> m.get("version").getAsInt())
-                        .thenComparingDouble((JsonObject m) -> -m.get("loss").getAsDouble()))
+                .filter((JsonObject m) -> m.has("type") && m.get("type").getAsString().equals(type))
+                .max(Comparator.comparingInt((JsonObject m) -> {
+                    if (m.has("version") && m.get("version").isJsonPrimitive()) {
+                        return m.get("version").getAsInt();
+                    }
+                    return Integer.MIN_VALUE;
+                }).thenComparingDouble((JsonObject m) -> {
+                    if (m.has("loss") && m.get("loss").isJsonPrimitive()) {
+                        return -m.get("loss").getAsDouble();
+                    }
+                    return Double.MAX_VALUE;
+                }))
                 .orElse(null);
     }
 
-    /**
-     * Загружает байты модели по ID из /models/{id}.
-     * @param id ID модели
-     * @return byte[] modelData
-     */
+
+    public CompletableFuture<byte[]> fetchModelBytesByIdAsync(int id) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_BASE_URL + "/" + id))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new IOException("Failed to fetch model by ID " + id + ": " + response.statusCode() + " - " + response.body());
+                }
+
+                JsonObject modelObj = JsonParser.parseString(response.body()).getAsJsonObject();
+                if (!modelObj.has("modelData") || modelObj.get("modelData").isJsonNull()) {
+                    return new byte[0];
+                }
+                String base64Data = modelObj.get("modelData").getAsString();
+                byte[] bytes = Base64.getDecoder().decode(base64Data);
+                System.out.println("Fetched model bytes for ID " + id + ": " + bytes.length + " bytes");
+                return bytes;
+            } catch (IOException | InterruptedException e) {
+                System.err.println("Error fetching bytes for ID " + id + ": " + e.getMessage());
+                throw new RuntimeException(e);
+            }
+        }, executor);
+    }
+
+
     public byte[] fetchModelBytesById(int id) throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(API_BASE_URL + "/" + id))
-                .GET()
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new IOException("Failed to fetch model by ID " + id + ": " + response.statusCode());
+        try {
+            return fetchModelBytesByIdAsync(id).get();
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                Throwable cause = e.getCause();
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                } else if (cause instanceof InterruptedException) {
+                    throw (InterruptedException) cause;
+                }
+            }
+            throw new RuntimeException(e);
         }
-
-        JsonObject modelObj = JsonParser.parseString(response.body()).getAsJsonObject();
-        String base64Data = modelObj.get("modelData").getAsString();
-        byte[] bytes = Base64.getDecoder().decode(base64Data);
-        System.out.println("Fetched model bytes for ID " + id + ": " + bytes.length + " bytes");  // Debug
-        return bytes;
     }
 
-    /**
-     * Загружает модель в базу по пути к файлу.
-     * @param type Тип (FACE_BBOX или FACE_KEYPOINTS)
-     * @param path Путь к файлу в resources (например, "/models/bbox_model.onnx")
-     * @param version Версия
-     * @param loss Loss
-     * @param comment Комментарий
-     */
+    public CompletableFuture<Void> uploadModelAsync(String type, String path, short version, float loss, String comment) {
+        return CompletableFuture.runAsync(() -> {
+            try {
+                File modelFile = new File(path);
+                if (!modelFile.exists() || !modelFile.isFile()) {
+                    throw new IOException("Model file not found: " + path);
+                }
+
+                byte[] modelData;
+                try (InputStream inputStream = new FileInputStream(modelFile)) {
+                    modelData = inputStream.readAllBytes();
+                }
+
+                String base64Encoded = Base64.getEncoder().encodeToString(modelData);
+                long size = modelData.length;
+
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("type", type);
+                dto.put("version", version);
+                dto.put("loss", loss);
+                dto.put("modelData", base64Encoded);
+                dto.put("comment", comment);
+                dto.put("size", size);
+
+                String jsonBody = GSON.toJson(dto);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(API_BASE_URL + "/add"))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                        .build();
+
+                HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    throw new IOException("Upload failed: " + response.statusCode() + " - " + response.body());
+                }
+                System.out.println("Model uploaded successfully: " + type);
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException("Upload failed: " + e.getMessage(), e);
+            }
+        }, executor);
+    }
+
+
     public void uploadModel(String type, String path, short version, float loss, String comment) throws IOException, InterruptedException {
-        File modelFile = new File(path);
-        if (!modelFile.exists() || !modelFile.isFile()) {
-            throw new IOException("Model file not found: " + path);
+        try {
+            uploadModelAsync(type, path, version, loss, comment).get();
+        } catch (Exception e) {
+            if (e instanceof RuntimeException) {
+                Throwable cause = e.getCause();
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                } else if (cause instanceof InterruptedException) {
+                    throw (InterruptedException) cause;
+                }
+            }
+            throw new RuntimeException(e);
         }
-
-        byte[] modelData;
-        try (InputStream inputStream = new FileInputStream(modelFile)) {
-            modelData = inputStream.readAllBytes();
-        }
-
-        String base64Encoded = Base64.getEncoder().encodeToString(modelData);
-        long size = modelData.length;
-
-        Map<String, Object> dto = new HashMap<>();
-        dto.put("type", type);
-        dto.put("version", version);
-        dto.put("loss", loss);
-        dto.put("modelData", base64Encoded);
-        dto.put("comment", comment);
-        dto.put("size", size);
-
-        String jsonBody = GSON.toJson(dto);
-
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(API_BASE_URL + "/add"))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        if (response.statusCode() != 200) {
-            throw new IOException("Upload failed: " + response.statusCode() + " - " + response.body());
-        }
-        System.out.println("Model uploaded successfully: " + type);  // Debug
     }
 
-    /**
-     * Получает метаданные всех моделей (кэш из /info).
-     */
+
     public List<JsonObject> getAllModelsInfo() {
         return new ArrayList<>(allModelsInfo); // Копия для безопасности
     }
 
-    /**
-     * Закрывает ресурсы.
-     */
     public void close() throws OrtException {
-        if (bboxManager != null) bboxManager.close();
-        if (pointsManager != null) pointsManager.close();
+        if (bboxManager != null) {
+            bboxManager.close();
+            bboxManager = null;
+        }
+        if (pointsManager != null) {
+            pointsManager.close();
+            pointsManager = null;
+        }
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdownNow();
+        }
         env.close();
     }
 
+
     public static void main(String[] args) throws IOException, OrtException, InterruptedException {
-        ModelManager mm  = new ModelManager();
-        String path = "C:\\Users\\igorox6\\Documents\\java_prog\\kursovoi_4_course_1\\src\\main\\resources\\models\\09_11_1_bbox.onnx";
-        mm.uploadModel("FACE_BBOX",path,(short) 6, (float) 0.001695, "" );
+        ModelManager mm = new ModelManager();
+        try {
+            String path = "C:\\Users\\igorox6\\Documents\\java_prog\\kursovoi_4_course_1\\src\\main\\resources\\models\\10_11_1_points.onnx";
+            mm.uploadModel("FACE_KEYPOINTS", path, (short) 4, (float) 0.00112, "");
+        } finally {
+            mm.close();
+        }
     }
 }

@@ -54,7 +54,6 @@ public final class UserFileSaver {
     }
 
 
-    // Удобный метод, если хочешь сохранить просто пару login/password без User
     public static Path saveCredentials(String login, String password) {
         User u = new User();
         u.setLogin(login);

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.AdminLogRegionalAdminChangeController"
+            prefWidth="1000.0" prefHeight="600.0"
+            style="-fx-background-color: #efefef;">
+
+    <!-- Верхняя панель: логотип слева, кнопка назад справа -->
+    <children>
+        <HBox spacing="10.0" alignment="CENTER_LEFT"
+              AnchorPane.topAnchor="10.0"
+              AnchorPane.leftAnchor="10.0"
+              AnchorPane.rightAnchor="10.0">
+            <children>
+                <ImageView fx:id="logoImageView"
+                           fitWidth="140.0" fitHeight="60.0"
+                           preserveRatio="true" smooth="true"
+                           pickOnBounds="true" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button fx:id="backButton"
+                        text="←"
+                        onAction="#handleBack"
+                        mnemonicParsing="false"
+                        prefWidth="44.0" prefHeight="36.0"
+                        style="-fx-background-color: #1f78d1; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 16px;" />
+            </children>
+        </HBox>
+
+        <!-- Основной контент: таблица по центру -->
+        <HBox spacing="18.0"
+              AnchorPane.topAnchor="90.0"
+              AnchorPane.leftAnchor="20.0"
+              AnchorPane.rightAnchor="20.0"
+              AnchorPane.bottomAnchor="20.0">
+
+            <!-- Центр: TableView логов изменений админа -->
+            <VBox spacing="8.0" prefWidth="740.0"
+                  style="-fx-background-color: transparent;">
+                <TableView fx:id="logTable" prefHeight="460.0" prefWidth="740.0" VBox.vgrow="ALWAYS">
+                    <columns />
+                </TableView>
+            </VBox>
+
+        </HBox>
+    </children>
+</AnchorPane>

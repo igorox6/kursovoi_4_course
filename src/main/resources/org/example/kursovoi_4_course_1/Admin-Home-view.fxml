@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.example.kursovoi_4_course_1.Controllers.AdminHomeController"
+            prefWidth="900.0" prefHeight="600.0" style="-fx-background-color: #f0f0f0;">
+
+
+    <children>
+        <!-- Логотип слева сверху -->
+        <ImageView fx:id="logoImageView" fitHeight="60.0" fitWidth="160.0" preserveRatio="true"
+                   AnchorPane.topAnchor="16" AnchorPane.leftAnchor="15" />
+
+
+        <!-- Заголовок по центру сверху -->
+        <Label text="Панель администратора"
+               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0a3b64;"
+               AnchorPane.topAnchor="25" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"
+               alignment="CENTER" />
+
+
+        <!-- Основная часть: центрированная сетка 3x2 маленьких кнопок -->
+        <VBox alignment="TOP_RIGHT" spacing="8.0" prefWidth="180.0" prefHeight="220.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="20">
+        <!-- toggle button (как в Bbox) -->
+        <Button fx:id="toggleButton"
+                text="←"
+                mnemonicParsing="false"
+                onAction="#handleExit"
+                prefWidth="44.0" prefHeight="44.0"
+                style="-fx-background-color: #ff6a00; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-font-size: 18px;" />
+        </VBox>
+        <GridPane hgap="24" vgap="24" AnchorPane.topAnchor="120" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" percentWidth="33.33" />
+                <ColumnConstraints halignment="CENTER" percentWidth="33.33" />
+                <ColumnConstraints halignment="CENTER" percentWidth="33.33" />
+            </columnConstraints>
+
+
+            <!-- Ряд 1 -->
+            <children>
+                <Button fx:id="authLogBtn" text="Лог аутентификации" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                        onAction="#handleAuthLog" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+
+
+                <Button fx:id="adminChangesBtn" text="Лог админа компании" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                        onAction="#handleAdminChangesLog" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+
+
+                <Button fx:id="modelsBtn" text="Модели" GridPane.columnIndex="2" GridPane.rowIndex="0"
+                        onAction="#handleModels" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+
+
+                <!-- Ряд 2 -->
+                <Button fx:id="rolesBtn" text="Роли" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                        onAction="#handleRoles" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+
+
+                <Button fx:id="userSettingsBtn" text="Пользовательские настройки" GridPane.columnIndex="1" GridPane.rowIndex="1"
+                        onAction="#handleUserSettings" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+
+
+                <Button fx:id="usersBtn" text="Пользователи" GridPane.columnIndex="2" GridPane.rowIndex="1"
+                        onAction="#handleUsers" prefWidth="180" prefHeight="70"
+                        style="-fx-background-color: #1C6DB8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 10; -fx-font-size: 14px;" />
+            </children>
+        </GridPane>
+    </children>
+</AnchorPane>

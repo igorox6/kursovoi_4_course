@@ -1,5 +1,7 @@
 package org.example.kursovoi_4_course_1.Controllers;
 
+import ai.onnxruntime.OrtException;
+import com.google.gson.JsonObject;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
@@ -28,6 +30,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.embed.swing.SwingFXUtils;
 import org.example.kursovoi_4_course_1.InnerClasses.Controller;
+import org.example.kursovoi_4_course_1.InnerClasses.ModelManager;
 
 public class RegAdminTypeDisplayController extends Controller {
 
@@ -47,7 +50,7 @@ public class RegAdminTypeDisplayController extends Controller {
     private Button typeBox3;
 
     @FXML
-    private ImageView cameraImageView; // Переименовать в previewImageView если нужно, но оставим как в FXML
+    private ImageView cameraImageView;
 
     @FXML
     private Label currentTypeLabel;
@@ -84,7 +87,7 @@ public class RegAdminTypeDisplayController extends Controller {
 
     private boolean drawerOpen = false;
 
-    private String selectedType = "Рамка с точками"; // По умолчанию
+    private String selectedType = "Рамка с точками";
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -100,7 +103,6 @@ public class RegAdminTypeDisplayController extends Controller {
         }
         else{adminName.setText("Admin");}
 
-        // Инициализация выдвижной панели
         adminButton.setVisible(false);
         modelButton.setVisible(false);
         userButton.setVisible(false);
@@ -108,11 +110,11 @@ public class RegAdminTypeDisplayController extends Controller {
         toggleButton.setText("←");
         drawerOpen = false;
 
-        // Выделение выбранного типа по умолчанию
         selectType(typeBox2);
 
-        // Установка начального изображения (заменить на реальный путь)
         cameraImageView.setImage(new Image(getClass().getResourceAsStream("/images/silhouette_1.png")));
+
+
     }
 
 
@@ -125,7 +127,7 @@ public class RegAdminTypeDisplayController extends Controller {
         FadeTransition fadeUser = new FadeTransition(Duration.millis(20), userButton);
         FadeTransition fadeLogout = new FadeTransition(Duration.millis(20), logoutButton);
 
-        if (!drawerOpen) { // opening
+        if (!drawerOpen) {
             slide.setByX(-distance);
             adminButton.setVisible(true);
             modelButton.setVisible(true);
@@ -141,7 +143,7 @@ public class RegAdminTypeDisplayController extends Controller {
             fadeLogout.setToValue(1);
             toggleButton.setText("→");
             toggleButton.setPrefWidth(160.0);
-        } else { // closing
+        } else {
             slide.setByX(distance);
             fadeAdmin.setToValue(0);
             fadeModel.setToValue(0);
@@ -184,31 +186,27 @@ public class RegAdminTypeDisplayController extends Controller {
     }
 
     private void selectType(Button selectedButton) {
-        // Сброс стилей всех кнопок
         typeBox1.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;");
         typeBox2.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;");
         typeBox3.setStyle("-fx-background-color: white; -fx-border-color: #ccc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;");
 
-        // Установка стиля для выбранной
         selectedButton.setStyle("-fx-background-color: white; -fx-border-color: #000000; -fx-border-width: 2; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 14px;");
 
-        // Обновление лейбла
         selectedType = selectedButton.getText();
         currentTypeLabel.setText("Сейчас используется: " + selectedType);
     }
 
     private void loadPreviewImage(String type) {
-        // Различная загрузка изображений в зависимости от типа
         String imagePath;
         switch (type) {
             case "ramka":
-                imagePath = "/images/silhouette_3.png"; // Заменить на реальный путь к изображению для "Рамка"
+                imagePath = "/images/silhouette_3.png";
                 break;
             case "tochki":
-                imagePath = "/images/silhouette_1.png"; // Заменить на реальный путь к изображению для "Ключевые точки"
+                imagePath = "/images/silhouette_1.png";
                 break;
             case "ramka_s_tochkami":
-                imagePath = "/images/silhouette_2.png"; // Заменить на реальный путь к изображению для "Рамка с точками"
+                imagePath = "/images/silhouette_2.png";
                 break;
             default:
                 imagePath = "/images/silhouette_1.png";
@@ -217,12 +215,10 @@ public class RegAdminTypeDisplayController extends Controller {
             Image image = new Image(getClass().getResourceAsStream(imagePath));
             cameraImageView.setImage(image);
         } catch (NullPointerException e) {
-            // Если ресурс не найден, можно загрузить из файла или использовать дефолт
             e.printStackTrace();
         }
     }
 
-    // Альтернативный метод для загрузки изображения из файла (если нужно различную загрузку с диска)
     private void loadImageFromFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Выберите изображение");
@@ -239,10 +235,6 @@ public class RegAdminTypeDisplayController extends Controller {
 
     @FXML
     private void handleApply() {
-        // Здесь можно добавить логику применения изменений, например, сохранение выбранного типа в контексте
-        // context.setDisplayType(selectedType);
-        // Затем переключение сцены если нужно
-        // context.switchScene("SomeOtherView.fxml");
     }
 
 
