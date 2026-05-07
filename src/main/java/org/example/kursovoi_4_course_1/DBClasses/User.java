@@ -17,6 +17,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;            // ← подправь пакет если нужно
+import org.example.kursovoi_4_course_1.DBClasses.TypeDisplay;
+import org.example.kursovoi_4_course_1.DBClasses.UserSettings;
+import org.example.kursovoi_4_course_1.InnerClasses.Crypt;
 
 @Getter
 @Setter
@@ -170,6 +180,140 @@ public class User {
         } catch (IOException | InterruptedException e) {
             System.out.println("Ошибка при отправке запроса: " + e.getMessage());
             throw new RuntimeException(e);
+        }
+    }
+
+    public static Path getPreferencesFilePath() {
+        String appData = System.getenv("APPDATA");
+        if (appData == null) {
+            appData = System.getProperty("user.home") + "/AppData/Roaming"; // fallback
+        }
+        return Paths.get(appData, "Local", "VisionMark", "Preferences", "preferences.txt");
+    }
+    public void loadLocalPreferences() {
+        if (this.id == null || this.id <= 0) {
+            return;
+        }
+
+        Path file = getPreferencesFilePath();
+        if (!Files.exists(file)) {
+            return;
+        }
+
+        String userIdStr = this.id.toString();
+
+        try {
+            List<String> lines = Files.readAllLines(file);
+
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || !line.contains("=")) {
+                    continue;
+                }
+
+                String[] parts = line.split("=", 2);
+                if (parts.length != 2) {
+                    continue;
+                }
+
+                String storedId = parts[0].trim();
+                String encrypted = parts[1].trim();
+
+                if (storedId.equals(userIdStr)) {
+                    String decrypted = Crypt.decrypt(encrypted);
+                    if (decrypted.isEmpty()) {
+                        return;
+                    }
+
+                    try {
+                        TypeDisplay typeDisplay = TypeDisplay.valueOf(decrypted.toUpperCase());
+
+                        if (this.user_settings == null) {
+                            this.user_settings = new UserSettings();
+                        }
+
+                        this.user_settings.setUserId(this.id);
+                        this.user_settings.setTypeDisplay(typeDisplay);
+                        this.user_settings.setUpdatedAt(OffsetDateTime.now());
+
+                        // Если в будущем захочешь сохранять и id моделей — здесь же их можно читать
+                        // пока оставляем заглушки или null
+                        // this.user_settings.setModelBboxId(...);
+                        // this.user_settings.setModelKeypointsId(...);
+
+                        System.out.println("Локальные настройки загружены для user " + this.id +
+                                ": typeDisplay = " + typeDisplay);
+
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("Некорректный TypeDisplay в файле для user " + this.id +
+                                ": " + decrypted);
+                    }
+                    return; // нашли → больше не ищем
+                }
+            }
+
+        } catch (IOException e) {
+            System.err.println("Ошибка чтения локальных предпочтений: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Сохраняет текущее значение TypeDisplay в локальный файл (дозапись / обновление строки)
+     *
+     * Используется, когда пользователь меняет тип отображения в интерфейсе
+     */
+    public void saveTypeDisplayToLocalPreferences(TypeDisplay typeDisplay) {
+        if (this.id == null || this.id <= 0) {
+            System.err.println("Нельзя сохранить: user.id не установлен");
+            return;
+        }
+
+        if (typeDisplay == null) {
+            typeDisplay = TypeDisplay.ALL; // дефолт
+        }
+
+        String userIdStr = this.id.toString();
+        String encrypted = Crypt.encrypt(typeDisplay.name());
+
+        Path file = getPreferencesFilePath();
+        Path parentDir = file.getParent();
+
+        try {
+            if (!Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+            }
+
+            List<String> lines = Files.exists(file) ? Files.readAllLines(file) : new ArrayList<>();
+            StringBuilder updatedContent = new StringBuilder();
+            boolean found = false;
+
+            for (String line : lines) {
+                if (line.trim().startsWith(userIdStr + "=")) {
+                    updatedContent.append(userIdStr).append("=").append(encrypted).append("\n");
+                    found = true;
+                } else {
+                    updatedContent.append(line).append("\n");
+                }
+            }
+
+            if (!found) {
+                updatedContent.append(userIdStr).append("=").append(encrypted).append("\n");
+            }
+
+            Files.writeString(file, updatedContent.toString());
+
+            // обновляем и объект в памяти
+            if (this.user_settings == null) {
+                this.user_settings = new UserSettings();
+                this.user_settings.setUserId(this.id);
+            }
+            this.user_settings.setTypeDisplay(typeDisplay);
+            this.user_settings.setUpdatedAt(OffsetDateTime.now());
+
+            System.out.println("Сохранено TypeDisplay = " + typeDisplay + " для user " + this.id);
+
+        } catch (IOException e) {
+            System.err.println("Ошибка сохранения локальных предпочтений: " + e.getMessage());
         }
     }
 }

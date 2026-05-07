@@ -8,7 +8,13 @@ import org.example.kursovoi_4_course_1.DBClasses.TypeDisplay;
 import org.example.kursovoi_4_course_1.DBClasses.User;
 import com.google.gson.JsonObject;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Base64;
 import java.util.List;
+
 
 @Getter
 @Setter
@@ -40,4 +46,24 @@ public class Context {
     public void switchScene(String fxml) {
         ((App) app).switchScene(fxml);
     }
+
+    public void setUser(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        this.user = user;
+
+        user.loadLocalPreferences();
+        TypeDisplay loadedType = TypeDisplay.ALL;
+
+        if (user.getUser_settings() != null) {
+            TypeDisplay settingsType = user.getUser_settings().getTypeDisplay();
+            if (settingsType != null) {
+                loadedType = settingsType;
+            }
+        }
+
+        this.typeDisplay = loadedType;
+    }
+
 }
