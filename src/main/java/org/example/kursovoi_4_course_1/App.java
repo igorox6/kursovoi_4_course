@@ -31,10 +31,10 @@ public class App extends Application {
         primaryStage.setScene(new Scene(rootLayout, 800, 450));
 
 
-        //switchScene("Bbox-view.fxml");
+        switchScene("Bbox-view.fxml");
         //switchScene("Admin-Home-view.fxml");
         //switchScene("RegAdmin-Model-choose-view.fxml");
-        switchScene("Login-view.fxml");
+        //switchScene("Login-view.fxml");
         primaryStage.show();
     }
 
@@ -48,6 +48,15 @@ public class App extends Application {
             Parent newScene = loader.load();
 
             rootLayout.getChildren().setAll(newScene);
+
+            if ("Bbox-view.fxml".equals(fxmlFile)) {
+                primaryStage.setWidth(1120);
+                primaryStage.setHeight(720);
+                primaryStage.setMinWidth(1120);
+                primaryStage.setMinHeight(720);
+                primaryStage.centerOnScreen();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

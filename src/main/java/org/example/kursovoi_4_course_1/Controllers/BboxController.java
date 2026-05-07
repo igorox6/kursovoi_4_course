@@ -21,11 +21,16 @@ import org.example.kursovoi_4_course_1.InnerClasses.ModelManager;
 import org.example.kursovoi_4_course_1.InnerClasses.ModelManagerBbox;
 import org.example.kursovoi_4_course_1.InnerClasses.ModelManagerPoints;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,17 +39,27 @@ public class BboxController extends Controller {
     private Context context;
 
     @FXML private ImageView logoImageView;
+
     @FXML private StackPane cameraContainer;
     @FXML private AnchorPane cameraPane;
+
     @FXML private Label model1Value;
     @FXML private Label model2Value;
+
     @FXML private AnchorPane sideDrawer;
     @FXML private Button toggleButton;
     @FXML private Button adminButton;
     @FXML private Button logoutButton;
 
-    private static final double PANE_W = 340.0;
-    private static final double PANE_H = 340.0;
+    @FXML private Label iodValue;
+    @FXML private Label noseChinValue;
+    @FXML private Label mouthWValue;
+    @FXML private Label faceWValue;
+    @FXML private Label faceHValue;
+    @FXML private Label hwValue;
+    @FXML private Label eyeNoseValue;
+    @FXML private Label symmetryValue;
+
     private static final int FPS_SLEEP_MS = 33;
     private static final int MIN_WEB_CAM_WIDTH = 640;
 
@@ -52,8 +67,6 @@ public class BboxController extends Controller {
     private static final Color POINTS_COLOR = new Color(255, 0, 0);
     private static final Color POINTS_BORDER = new Color(255, 255, 255);
     private static final Color LINE_COLOR = new Color(255, 200, 0);
-    private static final Color TEXT_COLOR = new Color(0, 255, 200);
-    private static final Color TEXT_BG = new Color(0, 0, 0, 180);
 
     private static final int POINT_RADIUS = 4;
     private static final int CROP_MARGIN = 15;
@@ -67,6 +80,7 @@ public class BboxController extends Controller {
 
     private Webcam webcam = Webcam.getDefault();
     private final AtomicBoolean running = new AtomicBoolean(false);
+
     private Thread grabberThread;
     private ImageView cameraImageView;
     private boolean drawerOpen = false;
@@ -74,6 +88,7 @@ public class BboxController extends Controller {
     private ModelManager modelManager;
     private ModelManagerBbox detector;
     private ModelManagerPoints pointsManager;
+
     private boolean bboxLoaded = false;
     private boolean pointsLoaded = false;
 
@@ -86,6 +101,7 @@ public class BboxController extends Controller {
         model1Value.setText("bbox: loading...");
         model2Value.setText("points: loading...");
 
+        clearGeometryPanel();
         setupCameraView();
         loadModelsAsync();
         startCamera();
@@ -93,11 +109,21 @@ public class BboxController extends Controller {
 
     private void setupCameraView() {
         cameraImageView = new ImageView();
+
         cameraImageView.setPreserveRatio(true);
         cameraImageView.setSmooth(true);
-        cameraImageView.setFitWidth(PANE_W);
-        cameraImageView.setFitHeight(PANE_H);
+        cameraImageView.setPickOnBounds(true);
+
+        cameraImageView.fitWidthProperty().bind(cameraPane.widthProperty());
+        cameraImageView.fitHeightProperty().bind(cameraPane.heightProperty());
+
+        cameraPane.getChildren().clear();
         cameraPane.getChildren().add(cameraImageView);
+
+        AnchorPane.setTopAnchor(cameraImageView, 0.0);
+        AnchorPane.setRightAnchor(cameraImageView, 0.0);
+        AnchorPane.setBottomAnchor(cameraImageView, 0.0);
+        AnchorPane.setLeftAnchor(cameraImageView, 0.0);
     }
 
     private void loadModelsAsync() {
@@ -195,7 +221,6 @@ public class BboxController extends Controller {
                 int bboxW = 0;
                 int bboxH = 0;
 
-                // ===== BBOX =====
                 if (bboxLoaded && detector != null) {
                     try {
                         bbox = detector.predict(image);
@@ -220,10 +245,11 @@ public class BboxController extends Controller {
                     }
                 }
 
-                // ===== KEYPOINTS =====
                 boolean needPoints = pointsLoaded
                         && pointsManager != null
                         && (displayType == TypeDisplay.KEYPOINTS || displayType == TypeDisplay.ALL);
+
+                boolean geometryUpdated = false;
 
                 if (needPoints) {
                     BufferedImage cropImage = image;
@@ -310,9 +336,15 @@ public class BboxController extends Controller {
                         }
 
                         if (displayType == TypeDisplay.ALL) {
-                            drawGeometry(g, drawXs, drawYs);
+                            GeometryData geometry = calculateGeometry(drawXs, drawYs);
+                            updateGeometryPanel(geometry);
+                            geometryUpdated = true;
                         }
                     }
+                }
+
+                if (!geometryUpdated) {
+                    clearGeometryPanel();
                 }
 
                 g.dispose();
@@ -332,7 +364,7 @@ public class BboxController extends Controller {
         }
     }
 
-    private void drawGeometry(Graphics2D g, int[] xs, int[] ys) {
+    private GeometryData calculateGeometry(int[] xs, int[] ys) {
         double iod = dist(xs, ys, 4, 5);
         double noseChin = dist(xs, ys, 6, 9);
         double mouthW = dist(xs, ys, 7, 8);
@@ -363,37 +395,95 @@ public class BboxController extends Controller {
 
         sym /= symPairs.length;
 
-        String[] lines = {
-                String.format("IOD: %.1f", iod),
-                String.format("Nose-Chin: %.1f", noseChin),
-                String.format("Mouth W: %.1f", mouthW),
-                String.format("Face W: %.1f", faceW),
-                String.format("Face H: %.1f", faceH),
-                String.format("H/W: %.2f", faceH / (faceW + 1e-6)),
-                String.format("Eye/Nose: %.2f", iod / (eyeNose + 1e-6)),
-                String.format("Symmetry: %.3f", sym),
-        };
+        return new GeometryData(
+                iod,
+                noseChin,
+                mouthW,
+                faceW,
+                faceH,
+                faceH / (faceW + 1e-6),
+                iod / (eyeNose + 1e-6),
+                sym
+        );
+    }
 
-        int boxW = 180;
-        int lineH = 16;
-        int boxH = lines.length * lineH + 8;
+    private void updateGeometryPanel(GeometryData data) {
+        Platform.runLater(() -> {
+            safeSet(iodValue, format1(data.iod));
+            safeSet(noseChinValue, format1(data.noseChin));
+            safeSet(mouthWValue, format1(data.mouthW));
+            safeSet(faceWValue, format1(data.faceW));
+            safeSet(faceHValue, format1(data.faceH));
+            safeSet(hwValue, format2(data.hw));
+            safeSet(eyeNoseValue, format2(data.eyeNose));
+            safeSet(symmetryValue, format3(data.symmetry));
+        });
+    }
 
-        g.setColor(TEXT_BG);
-        g.fillRect(5, 5, boxW, boxH);
+    private void clearGeometryPanel() {
+        Platform.runLater(() -> {
+            safeSet(iodValue, "-");
+            safeSet(noseChinValue, "-");
+            safeSet(mouthWValue, "-");
+            safeSet(faceWValue, "-");
+            safeSet(faceHValue, "-");
+            safeSet(hwValue, "-");
+            safeSet(eyeNoseValue, "-");
+            safeSet(symmetryValue, "-");
+        });
+    }
 
-        g.setColor(BBOX_COLOR);
-        g.drawRect(5, 5, boxW, boxH);
-
-        g.setColor(TEXT_COLOR);
-        g.setFont(new Font("Consolas", Font.PLAIN, 12));
-
-        for (int i = 0; i < lines.length; i++) {
-            g.drawString(lines[i], 10, 20 + i * lineH);
+    private void safeSet(Label label, String value) {
+        if (label != null) {
+            label.setText(value);
         }
+    }
+
+    private String format1(double value) {
+        return String.format(Locale.US, "%.1f", value).replace('.', ',');
+    }
+
+    private String format2(double value) {
+        return String.format(Locale.US, "%.2f", value).replace('.', ',');
+    }
+
+    private String format3(double value) {
+        return String.format(Locale.US, "%.3f", value).replace('.', ',');
     }
 
     private double dist(int[] xs, int[] ys, int a, int b) {
         return Math.sqrt(Math.pow(xs[a] - xs[b], 2) + Math.pow(ys[a] - ys[b], 2));
+    }
+
+    private static class GeometryData {
+        final double iod;
+        final double noseChin;
+        final double mouthW;
+        final double faceW;
+        final double faceH;
+        final double hw;
+        final double eyeNose;
+        final double symmetry;
+
+        GeometryData(
+                double iod,
+                double noseChin,
+                double mouthW,
+                double faceW,
+                double faceH,
+                double hw,
+                double eyeNose,
+                double symmetry
+        ) {
+            this.iod = iod;
+            this.noseChin = noseChin;
+            this.mouthW = mouthW;
+            this.faceW = faceW;
+            this.faceH = faceH;
+            this.hw = hw;
+            this.eyeNose = eyeNose;
+            this.symmetry = symmetry;
+        }
     }
 
     @FXML
