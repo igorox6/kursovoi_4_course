@@ -101,7 +101,7 @@ public class RegAdminTypeDisplayController extends Controller {
         if (context.getAdminReg() != null) {
             adminName.setText(context.getAdminReg().getLogin());
         }
-        else{adminName.setText("Admin");}
+        else{adminName.setText(Context.getInstance().getAdminReg().getLogin());}
 
         adminButton.setVisible(false);
         modelButton.setVisible(false);
@@ -110,9 +110,9 @@ public class RegAdminTypeDisplayController extends Controller {
         toggleButton.setText("←");
         drawerOpen = false;
 
-        selectType(typeBox2);
+        selectType(typeBox3);
 
-        cameraImageView.setImage(new Image(getClass().getResourceAsStream("/images/silhouette_1.png")));
+        cameraImageView.setImage(new Image(getClass().getResourceAsStream("/images/silhouette_2.png")));
 
 
     }

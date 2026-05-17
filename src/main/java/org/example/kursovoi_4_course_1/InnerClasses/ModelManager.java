@@ -29,9 +29,8 @@ public class ModelManager {
 
     // ======= Локальные модели =======
     private static final String LOCAL_MODELS_DIR = "models";
-    private static final String LOCAL_BBOX_FILE = "face_bbox_model_3.onnx";
-    private static final String LOCAL_POINTS_FILE = "face_landmarks_1.onnx";
-    private static final String LOCAL_POINTS_DATA_FILE = "face_landmarks_1.onnx.data";
+    private static final String LOCAL_BBOX_FILE = "face_bbox_model_4.onnx";
+    private static final String LOCAL_POINTS_FILE = "face_landmarks.onnx";
 
     // Если true — грузим из папки models/, если false — из API
     private static final boolean USE_LOCAL_MODELS = true;
@@ -99,7 +98,6 @@ public class ModelManager {
             Path pointsPath = findModelFile(LOCAL_POINTS_FILE);
             if (pointsPath != null) {
                 try {
-                    checkExternalDataFile(pointsPath);
                     pointsManager = new ModelManagerPoints(env, pointsPath);
                     long size = Files.size(pointsPath);
                     System.out.println("[OK] Points loaded: " + pointsPath + " (" + size + " bytes)");
@@ -115,19 +113,6 @@ public class ModelManager {
 
             System.out.println("Local model loading complete.");
         }, executor);
-    }
-
-    private void checkExternalDataFile(Path pointsPath) {
-        Path dir = pointsPath.toAbsolutePath().getParent();
-        if (dir == null) return;
-
-        Path dataPath = dir.resolve(LOCAL_POINTS_DATA_FILE);
-        if (!Files.exists(dataPath) || !Files.isRegularFile(dataPath)) {
-            System.err.println("[WARN] External data file not found near points model: " + dataPath);
-            System.err.println("[WARN] If points model was exported with external data, it will not load without .onnx.data file.");
-        } else {
-            System.out.println("[OK] Points external data found: " + dataPath);
-        }
     }
 
     /**

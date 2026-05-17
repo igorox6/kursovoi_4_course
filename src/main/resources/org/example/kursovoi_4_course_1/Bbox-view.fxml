@@ -112,42 +112,42 @@
                             </columnConstraints>
 
                             <children>
-                                <Label text="IOD:" GridPane.rowIndex="0" GridPane.columnIndex="0"
+                                <Label text="Межзрач. расст.:" GridPane.rowIndex="0" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="iodValue" text="-" GridPane.rowIndex="0" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Nose-Chin:" GridPane.rowIndex="1" GridPane.columnIndex="0"
+                                <Label text="Нос–Подбородок:" GridPane.rowIndex="1" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="noseChinValue" text="-" GridPane.rowIndex="1" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Mouth W:" GridPane.rowIndex="2" GridPane.columnIndex="0"
+                                <Label text="Ширина рта:" GridPane.rowIndex="2" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="mouthWValue" text="-" GridPane.rowIndex="2" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Face W:" GridPane.rowIndex="3" GridPane.columnIndex="0"
+                                <Label text="Ширина лица:" GridPane.rowIndex="3" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="faceWValue" text="-" GridPane.rowIndex="3" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Face H:" GridPane.rowIndex="4" GridPane.columnIndex="0"
+                                <Label text="Высота лица:" GridPane.rowIndex="4" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="faceHValue" text="-" GridPane.rowIndex="4" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="H/W:" GridPane.rowIndex="5" GridPane.columnIndex="0"
+                                <Label text="Пропорция В/Ш:" GridPane.rowIndex="5" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="hwValue" text="-" GridPane.rowIndex="5" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Eye/Nose:" GridPane.rowIndex="6" GridPane.columnIndex="0"
+                                <Label text="Глаза/Нос (IOD):" GridPane.rowIndex="6" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="eyeNoseValue" text="-" GridPane.rowIndex="6" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
 
-                                <Label text="Symmetry:" GridPane.rowIndex="7" GridPane.columnIndex="0"
+                                <Label text="Симметрия:" GridPane.rowIndex="7" GridPane.columnIndex="0"
                                        style="-fx-font-size: 13px; -fx-text-fill: #333333;" />
                                 <Label fx:id="symmetryValue" text="-" GridPane.rowIndex="7" GridPane.columnIndex="1"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1f78d1;" />
